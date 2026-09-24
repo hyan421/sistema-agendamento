@@ -8,7 +8,7 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "start": "node dist/server.js",
-    "db:migrate": "node --eval \"console.error('Migrations ainda nao foram implementadas (lote 2).'); process.exit(1)\"",
+    "db:migrate": "tsx src/db/migrate.ts",
     "db:seed": "node --eval \"console.error('Seed ainda nao foi implementado (lote 2).'); process.exit(1)\""
   },
   "devDependencies": {
