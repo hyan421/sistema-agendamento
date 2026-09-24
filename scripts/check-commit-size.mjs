@@ -44,7 +44,14 @@ function numstatForCommit(sha) {
     .split(' ')
     .slice(1);
   if (parents.length === 0) {
-    return git(['diff-tree', '--numstat', '--root', '-r', sha]);
+    return git([
+      'diff-tree',
+      '--no-commit-id',
+      '--numstat',
+      '--root',
+      '-r',
+      sha,
+    ]);
   }
   return git(['diff', '--numstat', `${parents[0]}...${sha}`]);
 }
