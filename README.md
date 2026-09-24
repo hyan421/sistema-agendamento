@@ -6,9 +6,9 @@ Equipe: Hyan Carvalhido Ferreira, Fernando De Jesus Teixeira Goncalves Filho e J
 
 ## O que ja existe neste momento
 
-Este repositorio tem a **configuracao inicial** (lote 1 do guia): workspaces npm, TypeScript, ESLint, Vite, Docker Compose e `.env.example`.
+Este repositorio tem a configuracao inicial e o **lote 2** do guia: validacao de ambiente, pool PostgreSQL e migrations iniciais.
 
-Ainda **nao** ha banco migrado, login, catalogo nem reservas. `npm run db:migrate`, `npm run db:seed` e `npm run start` so passam a funcionar nos lotes seguintes.
+O banco ja possui as tabelas `users`, `shop`, `session` e `schema_migrations`. Ainda nao ha login, catalogo nem reservas. `npm run db:seed` continua reservado para o proximo lote.
 
 ## O que voce precisa instalar (uma vez no computador)
 
@@ -56,6 +56,14 @@ npm install
 docker compose up -d --wait db
 ```
 
+Aplique as migrations depois que o banco estiver saudavel:
+
+```powershell
+npm run db:migrate
+```
+
+O comando e seguro para repetir: migrations ja aplicadas nao sao executadas novamente.
+
 `npm ci` so funciona depois de existir `package-lock.json` (gerado pelo primeiro `npm install`).
 
 Para ver a pagina placeholder do frontend:
@@ -76,4 +84,4 @@ Nao use `docker compose down -v` no dia a dia: isso apaga o volume do PostgreSQL
 
 ## Proximo passo de implementacao
 
-Seguir os lotes 2+ em `docs/GUIA_IMPLEMENTACAO.md` (pool, migrations, autenticacao, telas).
+Implementar o cadastro, login e logout no lote 3, seguindo `docs/GUIA_IMPLEMENTACAO.md`.
