@@ -1,0 +1,36 @@
+{
+  "name": "navalha-hora",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/web",
+    "apps/api",
+    "packages/contracts"
+  ],
+  "engines": {
+    "node": "24.21.0"
+  },
+  "scripts": {
+    "dev": "concurrently -n contracts,api,web -c blue,green,magenta \"npm run dev -w @navalha/contracts\" \"npm run dev -w @navalha/api\" \"npm run dev -w @navalha/web\"",
+    "build": "npm run build -w @navalha/contracts && npm run build -w @navalha/api && npm run build -w @navalha/web",
+    "typecheck": "npm run typecheck -w @navalha/contracts && npm run typecheck -w @navalha/api && npm run typecheck -w @navalha/web",
+    "lint": "eslint .",
+    "check": "npm run typecheck && npm run lint",
+    "start": "npm run start -w @navalha/api",
+    "db:migrate": "npm run db:migrate -w @navalha/api",
+    "db:seed": "npm run db:seed -w @navalha/api",
+    "commits:check": "node scripts/check-commit-size.mjs",
+    "contributions:check": "node scripts/check-contributions.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.36.0",
+    "concurrently": "9.2.1",
+    "eslint": "9.36.0",
+    "eslint-plugin-react-hooks": "5.2.0",
+    "globals": "16.4.0",
+    "prettier": "3.6.2",
+    "tsx": "4.20.5",
+    "typescript": "5.9.2",
+    "typescript-eslint": "8.44.0"
+  }
+}
