@@ -12,10 +12,19 @@
     "db:seed": "node --eval \"console.error('Seed ainda nao foi implementado (lote 2).'); process.exit(1)\""
   },
   "devDependencies": {
+    "@types/connect-pg-simple": "7.0.3",
+    "@types/express": "5.0.3",
+    "@types/express-session": "1.18.2",
     "@types/node": "24.5.2",
     "@types/pg": "8.23.1"
   },
   "dependencies": {
+    "@navalha/contracts": "0.0.0",
+    "connect-pg-simple": "10.0.0",
+    "express": "5.1.0",
+    "express-rate-limit": "8.7.0",
+    "express-session": "1.18.2",
+    "helmet": "8.1.0",
     "pg": "8.23.0"
   }
 }

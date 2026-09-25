@@ -11,9 +11,9 @@
     "node": "24.21.0"
   },
   "scripts": {
-    "dev": "concurrently -n contracts,api,web -c blue,green,magenta \"npm run dev -w @navalha/contracts\" \"npm run dev -w @navalha/api\" \"npm run dev -w @navalha/web\"",
+    "dev": "npm run build -w @navalha/contracts && concurrently -n contracts,api,web -c blue,green,magenta \"npm run dev -w @navalha/contracts\" \"npm run dev -w @navalha/api\" \"npm run dev -w @navalha/web\"",
     "build": "npm run build -w @navalha/contracts && npm run build -w @navalha/api && npm run build -w @navalha/web",
-    "typecheck": "npm run typecheck -w @navalha/contracts && npm run typecheck -w @navalha/api && npm run typecheck -w @navalha/web",
+    "typecheck": "npm run build -w @navalha/contracts && npm run typecheck -w @navalha/api && npm run typecheck -w @navalha/web",
     "lint": "eslint .",
     "check": "npm run typecheck && npm run lint",
     "start": "npm run start -w @navalha/api",
