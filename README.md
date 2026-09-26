@@ -36,55 +36,52 @@ Confira `node --version`, `npm --version` e `docker compose version`.
 No Linux, use `sudo docker ...` quando seu usuário não tiver acesso ao Docker.
 As bibliotecas do projeto são instaladas localmente com `npm ci`.
 
-## Como preparar o ambiente do projeto
+## Executar localmente
 
-Na pasta `C:\Users\Fernando\sistema-agendamento`:
+Na raiz do projeto (Linux):
 
-```powershell
-Copy-Item .env.example .env
-```
-
-Abra o arquivo `.env` e troque **somente** estes tres valores (nao deixe o texto `SUBSTITUIR`):
-
-- `POSTGRES_PASSWORD` — senha do banco local. Use a **mesma** senha em `DATABASE_URL` (no lugar de `SUBSTITUIR_LOCALMENTE` depois de `navalha:`).
-- `SESSION_SECRET` — um texto longo aleatorio (pode ser uma frase sua + numeros).
-- `DEMO_PASSWORD` — senha forte das contas de demonstracao (minimo 10 caracteres). Sera usada no seed, quando existir.
-
-Nao envie o `.env` para o Git. O `.env.example` e so o modelo.
-
-Depois, com o Docker Desktop aberto:
-
-```powershell
-npm install
+```bash
+cp -n .env.example .env
+# Edite .env: substitua os placeholders antes de continuar.
+npm ci
 docker compose up -d --wait db
-```
-
-Aplique as migrations depois que o banco estiver saudavel:
-
-```powershell
 npm run db:migrate
-```
-
-O comando e seguro para repetir: migrations ja aplicadas nao sao executadas novamente.
-
-`npm ci` so funciona depois de existir `package-lock.json` (gerado pelo primeiro `npm install`).
-
-Para iniciar a API e o frontend depois de aplicar as migrations:
-
-```powershell
+npm run db:seed
 npm run dev
 ```
 
-Abra [http://localhost:5173](http://localhost:5173). O Vite encaminha as chamadas `/api` para a API local.
+No PowerShell, copie o arquivo somente se ele não existir: `Copy-Item .env.example .env`.
+Use a mesma senha em `POSTGRES_PASSWORD` e `DATABASE_URL` (codifique caracteres especiais na URL).
+Configure `SESSION_SECRET` com segredo longo e aleatório e `DEMO_PASSWORD` com 10–128 caracteres.
+O `.env` é pessoal e ignorado pelo Git. Nunca publique seus valores.
 
-Para parar o banco sem apagar dados:
+Abra [localhost:5173](http://localhost:5173). Pare a aplicação com Ctrl+C.
+Pare o banco com `docker compose stop`; evite `down -v`, que apaga o volume.
 
-```powershell
-docker compose stop
+### Contas de demonstração
+
+- Cliente: `cliente@demo.test`
+- Barbeiros: `barbeiro1@demo.test` e `barbeiro2@demo.test`
+- Administrador: `admin@demo.test`
+
+Todas usam o valor local de `DEMO_PASSWORD` na primeira criação.
+Reaplicar seed não troca senhas, papéis, serviços existentes nem jornadas editadas.
+O seed exige `ALLOW_DEMO_SEED=true` e recusa produção.
+
+### Versão compilada e verificações
+
+```bash
+npm run check
+npm run build
+# Configure APP_ORIGIN=http://localhost:3001 em .env antes de iniciar.
+npm start
 ```
 
-Nao use `docker compose down -v` no dia a dia: isso apaga o volume do PostgreSQL.
+Abra [localhost:3001](http://localhost:3001). A API serve também o frontend.
+Com o banco ativo, `node scripts/validation/run.mjs` testa em banco temporário isolado;
+o usuário PostgreSQL precisa de permissão de criar banco (o usuário do Compose já tem).
+Veja [validação](docs/VALIDACAO_MANUAL.md), [API](docs/API.md), [demo](docs/DEMO.md) e [uso de IA](docs/USO_IA.md).
 
-## Proximo passo de implementacao
-
-Completar o seed de demonstracao e implementar consulta/leitura de notificacoes e o job de lembretes do lote 8, seguindo `docs/GUIA_IMPLEMENTACAO.md`.
+Para Ollama, configure `AI_PROVIDER=ollama`, `OLLAMA_BASE_URL` e `OLLAMA_MODEL` com um modelo
+já instalado localmente. Falha ou timeout usa ajuda automática identificada. Nenhum modelo é baixado pelo projeto.
+Limites de requisições ficam em memória e pressupõem uma única instância da API.
