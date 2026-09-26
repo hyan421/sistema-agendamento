@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import { env } from './config/env.js';
 import { pool } from './db/pool.js';
 import { authRoutes } from './modules/auth/routes.js';
+import { scheduleRoutes } from './modules/schedule/routes.js';
 import { serviceRoutes } from './modules/services/routes.js';
 
 const app = express();
@@ -46,7 +47,7 @@ app.use(
   }),
 );
 
-app.use('/api/v1', authRoutes, serviceRoutes);
+app.use('/api/v1', authRoutes, serviceRoutes, scheduleRoutes);
 app.use((_request, response) => {
   response.status(404).json({ error: { code: 'NOT_FOUND', message: 'Resource not found.' } });
 });
