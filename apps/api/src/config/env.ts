@@ -48,6 +48,8 @@ export const env = {
   sessionSecret: required('SESSION_SECRET'),
   shopTimezone: required('SHOP_TIMEZONE'),
   aiProvider: process.env.AI_PROVIDER ?? 'fallback',
+  ollamaBaseUrl: process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434',
+  ollamaModel: process.env.OLLAMA_MODEL ?? '',
 };
 
 if (!['development', 'test', 'production'].includes(env.nodeEnv)) {
@@ -62,4 +64,9 @@ try {
   new Intl.DateTimeFormat('en-US', { timeZone: env.shopTimezone });
 } catch {
   throw new Error(`SHOP_TIMEZONE invalido: ${env.shopTimezone}`);
+}
+
+if (env.aiProvider === 'ollama') {
+  url('OLLAMA_BASE_URL', ['http:', 'https:']);
+  required('OLLAMA_MODEL');
 }
