@@ -5,9 +5,11 @@ function git(args) {
 }
 
 const range = process.argv[2];
-const logArgs = ['shortlog', '-sne', '--all'];
+const logArgs = ['shortlog', '-sne'];
 if (range) {
   logArgs.push(range);
+} else {
+  logArgs.push('--all');
 }
 
 const output = git(logArgs).trim();

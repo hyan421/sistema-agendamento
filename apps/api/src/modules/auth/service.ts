@@ -58,7 +58,7 @@ function toUserDTO(user: {
   });
 }
 
-async function hashPassword(password: string): Promise<string> {
+export async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(SCRYPT_SALT_LENGTH);
   const derivedKey = await deriveKey(password, salt);
   return [

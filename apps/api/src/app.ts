@@ -1,3 +1,7 @@
+import { extname } from 'node:path';
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { shopRoutes } from './modules/shop/routes.js';
 import express, { type ErrorRequestHandler } from 'express';
 import connectPgSimple from 'connect-pg-simple';
 import session from 'express-session';
@@ -9,6 +13,12 @@ import { authRoutes } from './modules/auth/routes.js';
 import { appointmentRoutes } from './modules/appointments/routes.js';
 import { scheduleRoutes } from './modules/schedule/routes.js';
 import { serviceRoutes } from './modules/services/routes.js';
+
+import { notificationRoutes } from './modules/notifications/routes.js';
+
+import { metricsRoutes } from './modules/metrics/routes.js';
+
+import { assistantRoutes } from './modules/assistant/routes.js';
 
 const app = express();
 const PgSession = connectPgSimple(session);
@@ -48,7 +58,21 @@ app.use(
   }),
 );
 
-app.use('/api/v1', authRoutes, serviceRoutes, scheduleRoutes, appointmentRoutes);
+app.use('/api/v1', authRoutes, serviceRoutes, scheduleRoutes, appointmentRoutes, notificationRoutes, metricsRoutes, shopRoutes, assistantRoutes);
+const webDirectory = fileURLToPath(new URL('../../web/dist/', import.meta.url));
+if (existsSync(webDirectory)) {
+  app.use(express.static(webDirectory, { index: false }));
+  const pages = ['/', '/entrar', '/cadastro', '/agendar', '/meus-agendamentos',
+    '/notificacoes', '/assistente', '/profissional/agenda', '/profissional/servicos', '/admin'];
+  app.get(pages, (_req, res) => { res.sendFile(`${webDirectory}/index.html`); });
+  app.use((req, res, next) => {
+    if (req.method === 'GET' && !/^\/api(?:\/|$)/.test(req.path) && !extname(req.path) && req.accepts('html')) {
+      res.status(404).sendFile(`${webDirectory}/index.html`);
+      return;
+    }
+    next();
+  });
+}
 app.use((_request, response) => {
   response.status(404).json({ error: { code: 'NOT_FOUND', message: 'Resource not found.' } });
 });

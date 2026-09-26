@@ -42,12 +42,14 @@ function url(name: string, protocols: string[]): string {
 
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? 'development',
-  port: positiveInteger('PORT'),
-  appOrigin: url('APP_ORIGIN', ['http:', 'https:']),
+  get port() { return positiveInteger('PORT'); },
+  get appOrigin() { return url('APP_ORIGIN', ['http:', 'https:']); },
   databaseUrl: url('DATABASE_URL', ['postgres:', 'postgresql:']),
-  sessionSecret: required('SESSION_SECRET'),
-  shopTimezone: required('SHOP_TIMEZONE'),
+  get sessionSecret() { return required('SESSION_SECRET'); },
+  shopTimezone: process.env.SHOP_TIMEZONE ?? 'America/Sao_Paulo',
   aiProvider: process.env.AI_PROVIDER ?? 'fallback',
+  ollamaBaseUrl: process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434',
+  ollamaModel: process.env.OLLAMA_MODEL ?? '',
 };
 
 if (!['development', 'test', 'production'].includes(env.nodeEnv)) {
@@ -62,4 +64,9 @@ try {
   new Intl.DateTimeFormat('en-US', { timeZone: env.shopTimezone });
 } catch {
   throw new Error(`SHOP_TIMEZONE invalido: ${env.shopTimezone}`);
+}
+
+if (env.aiProvider === 'ollama') {
+  url('OLLAMA_BASE_URL', ['http:', 'https:']);
+  required('OLLAMA_MODEL');
 }

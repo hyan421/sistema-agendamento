@@ -2,11 +2,19 @@ import { StrictMode, useEffect, useState, type FormEvent } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import './styles.css';
+import { Auth } from './features/Auth';
+import { Services } from './features/Services';
+import { Catalog } from './features/Catalog';
+import { Assistant } from './features/Assistant';
+import { Metrics } from './features/Metrics';
+import { Notifications } from './features/Notifications';
+import { BrowserRouter, useLocation } from 'react-router';
+import { useView } from './lib/navigation';
+import { ApiError, request } from './lib/api';
 
 type WeeklyInterval = { weekday: number; startTime: string; endTime: string };
 type TimeBlock = { id: string; startsAt: string; endsAt: string; reason: string; createdAt: string };
 type Envelope<T> = { data: T };
-type ApiError = { error?: { message?: string; fields?: Record<string, string> } };
 type Service = { id: string; name: string; description: string; category: string; durationMinutes: number; priceCents: number; active: boolean };
 type Barber = { id: string; displayName: string };
 type User = { id: string; name: string; email: string; role: 'CLIENT' | 'BARBER' | 'ADMIN' };
@@ -23,25 +31,13 @@ const weekdays = [
   { value: 7, label: 'Domingo' },
 ];
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, {
-    credentials: 'include',
-    ...init,
-    headers: {
-      ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
-      ...init?.headers,
-    },
-  });
-
-  if (response.status === 204) return undefined as T;
-  const payload = (await response.json().catch(() => null)) as ApiError | Envelope<T> | null;
-  if (!response.ok) {
-    const fields = payload && 'error' in payload ? payload.error?.fields : undefined;
-    const fieldMessage = fields ? Object.values(fields)[0] : undefined;
-    const message = payload && 'error' in payload ? payload.error?.message : undefined;
-    throw new Error(fieldMessage ?? message ?? 'Não foi possível concluir a solicitação.');
-  }
-  return payload as T;
+function initialBookingDate(): string {
+  const params = new URLSearchParams(window.location.search);
+  const raw = params.get('date');
+  if (raw && /^\d{4}-\d{2}-\d{2}$/.test(raw) && Number.isFinite(Date.parse(raw))) return raw;
+  const instant = new Date(params.get('startsAt') ?? '');
+  return Number.isFinite(instant.getTime())
+    ? new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(instant) : today();
 }
 
 function today(): string {
@@ -56,7 +52,8 @@ function today(): string {
 }
 
 function App(): React.JSX.Element {
-  const [view, setView] = useState<'book' | 'mine' | 'barber' | 'schedule'>('book');
+  const [view, setView] = useView();
+  const location = useLocation();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
   const [intervals, setIntervals] = useState<WeeklyInterval[]>([]);
@@ -186,6 +183,11 @@ function App(): React.JSX.Element {
     }
   }
 
+  const pageTitles: Record<string, string> = {
+    login: 'Entrar', register: 'Cadastro', catalog: 'Serviços da barbearia', book: 'Reserve seu horário', mine: 'Meus agendamentos',
+    barber: 'Agenda do barbeiro', schedule: 'Horários de atendimento', notifications: 'Notificações',
+    metrics: 'Painel administrativo', assistant: 'Assistente', services: 'Gerenciar serviços', notfound: 'Página não encontrada',
+  };
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -200,6 +202,12 @@ function App(): React.JSX.Element {
       </header>
 
       <nav className="view-nav" aria-label="Navegação principal">
+        {currentUser?.role === 'BARBER' && <button onClick={() => setView('services')}>Serviços</button>}
+        <button onClick={() => setView('catalog')}>Catálogo</button>
+        {!currentUser && <><a href="/entrar">Entrar</a><a href="/cadastro">Cadastrar</a></>}
+        {currentUser?.role === 'CLIENT' && <button onClick={() => setView('assistant')}>Assistente</button>}
+        {currentUser?.role === 'ADMIN' && <button onClick={() => setView('metrics')}>Métricas</button>}
+        {currentUser && <button onClick={() => setView('notifications')}>Notificações<Notifications key={currentUser.id} badge /></button>}
         <button className={view === 'book' ? 'nav-active' : ''} type="button" onClick={() => setView('book')}>Agendar</button>
         {currentUser?.role === 'CLIENT' && <button className={view === 'mine' ? 'nav-active' : ''} type="button" onClick={() => setView('mine')}>Meus agendamentos</button>}
         {currentUser?.role === 'BARBER' && <>
@@ -210,10 +218,10 @@ function App(): React.JSX.Element {
 
       <section className="page-heading">
         <div>
-          <p className="eyebrow">{view === 'book' ? 'RESERVAS / NOVO AGENDAMENTO' : view === 'mine' ? 'RESERVAS / CLIENTE' : view === 'barber' ? 'AGENDA / PROFISSIONAL' : 'AGENDA / CONFIGURAÇÃO'}</p>
-          <h1>{view === 'book' ? 'Reserve seu horário' : view === 'mine' ? 'Meus agendamentos' : view === 'barber' ? 'Agenda do barbeiro' : 'Horários de atendimento'}</h1>
+          <p className="eyebrow">NAVALHA &amp; HORA</p>
+          <h1>{pageTitles[view]}</h1>
         </div>
-        <p className="heading-note">{view === 'book' ? 'Serviço, profissional e horário em um só fluxo' : view === 'mine' ? 'Próximos horários e histórico' : view === 'barber' ? 'Atendimentos e estados de hoje' : 'Jornada semanal e exceções da agenda'}</p>
+        <p className="heading-note">Atendimento no fuso de São Paulo</p>
       </section>
 
       {(error || notice) && (
@@ -222,8 +230,23 @@ function App(): React.JSX.Element {
         </div>
       )}
 
+      {(view === 'login' || view === 'register') && <Auth key={view} register={view === 'register'} onUser={(user) => {
+        setCurrentUser(user);
+        setView(user.role === 'ADMIN' ? 'metrics' : user.role === 'BARBER' ? 'barber' : 'book');
+      }} />}
+      {view === 'services' && currentUser?.role === 'BARBER' && <Services />}
+      {view === 'catalog' && <Catalog />}
+      {view === 'notfound' && <section><h2>Página não encontrada</h2><a href="/">Voltar ao início</a></section>}
+      {!sessionLoading && !currentUser && ['mine', 'barber', 'schedule', 'notifications', 'metrics', 'assistant', 'services'].includes(view) &&
+        <p>Entre na sua conta para acessar esta página. <a href="/entrar">Entrar</a></p>}
+      {currentUser && ((['barber', 'schedule', 'services'].includes(view) && currentUser.role !== 'BARBER') ||
+        (view === 'metrics' && currentUser.role !== 'ADMIN') || (['mine', 'assistant'].includes(view) && currentUser.role !== 'CLIENT')) &&
+        <p role="alert">Sua conta não tem acesso a esta página.</p>}
+      {view === 'assistant' && currentUser?.role === 'CLIENT' && <Assistant />}
+      {view === 'metrics' && currentUser?.role === 'ADMIN' && <Metrics />}
+      {view === 'notifications' && currentUser && <Notifications key={currentUser.id} />}
       {view === 'book' && (
-        <BookingPanel
+        <BookingPanel key={location.pathname + location.search}
           user={currentUser}
           onUser={setCurrentUser}
           setError={setError}
@@ -236,7 +259,7 @@ function App(): React.JSX.Element {
       {view === 'barber' && currentUser?.role === 'BARBER' && (
         <BarberAppointmentsPanel setError={setError} setNotice={setNotice} />
       )}
-      {view === 'schedule' && (loading ? (
+      {view === 'schedule' && currentUser?.role === 'BARBER' && (loading ? (
         <p className="loading-state" aria-live="polite">Carregando agenda...</p>
       ) : (
         <div className="schedule-layout">
@@ -410,16 +433,17 @@ function BookingPanel({
   const [services, setServices] = useState<Service[]>([]);
   const [barbers, setBarbers] = useState<Barber[]>([]);
   const [slots, setSlots] = useState<Array<{ startsAt: string; endsAt: string; durationMinutes: number }>>([]);
-  const [serviceId, setServiceId] = useState('');
-  const [barberId, setBarberId] = useState('');
-  const [date, setDate] = useState(today);
+  const params = new URLSearchParams(window.location.search);
+  const [serviceId, setServiceId] = useState(params.get('serviceId') ?? '');
+  const [barberId, setBarberId] = useState(params.get('barberId') ?? '');
+  const [date, setDate] = useState(initialBookingDate);
   const [selectedSlot, setSelectedSlot] = useState('');
   const [availabilityRevision, setAvailabilityRevision] = useState(0);
   const [loadingOptions, setLoadingOptions] = useState(true);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [authRequired, setAuthRequired] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [authRequired, setAuthRequired] = useState(['/entrar', '/cadastro'].includes(window.location.pathname));
+  const [authMode, setAuthMode] = useState<'login' | 'register'>(window.location.pathname === '/cadastro' ? 'register' : 'login');
   const [authName, setAuthName] = useState('');
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
@@ -491,10 +515,11 @@ function BookingPanel({
       setSelectedSlot('');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Não foi possível confirmar o horário.');
-      if (cause instanceof Error && cause.message.includes('Authentication')) {
+      if (cause instanceof ApiError && cause.status === 401) {
         onUser(null);
         setAuthRequired(true);
       }
+      if (cause instanceof ApiError && cause.status === 409) setError('Este horário mudou. Escolha outro horário na lista atualizada.');
       setAvailabilityRevision((revision) => revision + 1);
     } finally {
       setSaving(false);
@@ -813,6 +838,6 @@ if (!root) throw new Error('Elemento #root ausente em index.html');
 
 createRoot(root).render(
   <StrictMode>
-    <App />
+    <BrowserRouter><App /></BrowserRouter>
   </StrictMode>,
 );

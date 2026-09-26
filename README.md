@@ -4,91 +4,163 @@ Plataforma web de agendamento para uma barbearia ficticia.
 
 Equipe: Hyan Carvalhido Ferreira, Fernando De Jesus Teixeira Goncalves Filho e Joao Victor Cerbino Souza.
 
-## O que ja existe neste momento
+## Estado da implementação
 
-Este repositorio tem a configuracao inicial e os **lotes 2 a 7** implementados:
+Lotes 1 a 10 implementados; CI e documentação do lote 11 preparados.
+A aprovação humana e a demonstração com modelo Ollama real continuam pendentes.
 
-- **Lote 2 concluido:** validacao de ambiente, pool PostgreSQL e executor de migrations. O seed de demonstracao ainda esta pendente.
-- **Lote 3 concluido:** cadastro e login de clientes, sessoes persistentes em PostgreSQL, logout e hash de senha com `scrypt`.
-- **Lote 4 concluido:** catalogo publico de servicos e barbeiros; barbeiros autenticados podem criar, editar e desativar servicos.
-- **Lote 5 concluido:** jornada semanal e bloqueios de agenda, com validacao de conflitos e acesso restrito ao barbeiro responsavel.
-- **Lote 6 validado:** API calcula disponibilidade na zona da loja e cria reservas com transacao, lock do barbeiro, snapshots e notificacoes de confirmacao. Duas reservas concorrentes foram exercitadas contra PostgreSQL: uma confirmou e a outra recebeu conflito.
-- **Lote 7 validado:** clientes consultam proximos agendamentos e historico; clientes e barbeiros autorizados podem cancelar, e o barbeiro consulta a agenda diaria e conclui atendimentos apos o termino. Os fluxos HTTP foram exercitados com sessoes e contas temporarias, removidas ao final.
+| História | Implementação |
+| --- | --- |
+| H1 — Conta de cliente | Cadastro, login, sessão PostgreSQL e logout |
+| H2 — Catálogo | Filtros por categoria, preço e cidade/bairro em URL |
+| H3 — Reserva | Disponibilidade, confirmação transacional, histórico e cancelamento |
+| H4 — Assistente | Fallback e adaptador Ollama; modelo real ainda não validado |
+| H5 — Serviços | Barbeiro cria, edita, ativa e desativa pelo frontend |
+| H6 — Agenda | Jornada semanal, bloqueios e proteção de reservas existentes |
+| H7 — Notificações | Confirmação, cancelamento, leitura e lembrete idempotente |
+| H8 — Métricas | Painel ADMIN com período, fuso, status e serviços concluídos |
 
-As migrations `001` a `006` definem usuarios, loja, sessoes, catalogo, agenda, reservas e notificacoes. Typecheck, lint, build e migrations passaram; as constraints de sobreposicao e a unicidade de notificacoes tambem foram verificadas contra PostgreSQL. O seed de demonstracao ainda esta pendente.
+Stack: TypeScript, React/Vite, Express 5, PostgreSQL 17 e npm workspaces.
+Responsabilidades propostas pelo guia: Hyan — integração, contratos e IA;
+Fernando — banco, autenticação e API; Joao Victor — telas e experiência.
+Revisão e aprovação de cada incremento devem ser registradas por uma pessoa do grupo.
 
-## O que voce precisa instalar (uma vez no computador)
+## Dependências do computador
 
-Hoje esta maquina ainda **nao** tem Git, Node nem Docker no PATH. Instale nesta ordem:
+- Git e Node.js **24.21.0**, conforme `.nvmrc` (npm incluído).
+- Linux: Docker Engine e plugin Compose v2. Windows/macOS: Docker Desktop.
+- PostgreSQL **17.11** é baixado pelo Compose; não requer instalação separada.
+- Ollama é opcional. O modo padrão é `AI_PROVIDER=fallback`.
 
-1. **Git** — [https://git-scm.com/download/win](https://git-scm.com/download/win)
-2. **Node.js 24.21.0 LTS** — [https://nodejs.org/dist/v24.21.0/node-v24.21.0-x64.msi](https://nodejs.org/dist/v24.21.0/node-v24.21.0-x64.msi)  
-   Na instalacao, deixe marcada a opcao de adicionar ao PATH. Nao instale a linha Current 26.
-3. **Docker Desktop** — [https://docs.docker.com/desktop/setup/install/windows-install/](https://docs.docker.com/desktop/setup/install/windows-install/)  
-   Depois de instalar, abra o Docker Desktop e espere ficar "Engine running". No Windows use WSL 2 se o instalador pedir.
+Confira `node --version`, `npm --version` e `docker compose version`.
+No Linux, use `sudo docker ...` quando seu usuário não tiver acesso ao Docker.
+As bibliotecas do projeto são instaladas localmente com `npm ci`.
 
-Feche e abra o Cursor/PowerShell depois de instalar. Confira:
+## Executar localmente
 
-```powershell
-node --version
-npm --version
-git --version
-docker compose version
-```
+Na raiz do projeto (Linux):
 
-`node --version` deve mostrar `v24.21.0`.
-
-Ollama e opcional (so para o assistente com IA no lote 10). Sem ele o resto do projeto continua valido.
-
-## Como preparar o ambiente do projeto
-
-Na pasta `C:\Users\Fernando\sistema-agendamento`:
-
-```powershell
-Copy-Item .env.example .env
-```
-
-Abra o arquivo `.env` e troque **somente** estes tres valores (nao deixe o texto `SUBSTITUIR`):
-
-- `POSTGRES_PASSWORD` — senha do banco local. Use a **mesma** senha em `DATABASE_URL` (no lugar de `SUBSTITUIR_LOCALMENTE` depois de `navalha:`).
-- `SESSION_SECRET` — um texto longo aleatorio (pode ser uma frase sua + numeros).
-- `DEMO_PASSWORD` — senha forte das contas de demonstracao (minimo 10 caracteres). Sera usada no seed, quando existir.
-
-Nao envie o `.env` para o Git. O `.env.example` e so o modelo.
-
-Depois, com o Docker Desktop aberto:
-
-```powershell
-npm install
+```bash
+cp -n .env.example .env
+# Edite .env: substitua os placeholders antes de continuar.
+npm ci
 docker compose up -d --wait db
-```
-
-Aplique as migrations depois que o banco estiver saudavel:
-
-```powershell
 npm run db:migrate
-```
-
-O comando e seguro para repetir: migrations ja aplicadas nao sao executadas novamente.
-
-`npm ci` so funciona depois de existir `package-lock.json` (gerado pelo primeiro `npm install`).
-
-Para iniciar a API e o frontend depois de aplicar as migrations:
-
-```powershell
+npm run db:seed
 npm run dev
 ```
 
-Abra [http://localhost:5173](http://localhost:5173). O Vite encaminha as chamadas `/api` para a API local.
+No PowerShell, copie o arquivo somente se ele não existir: `Copy-Item .env.example .env`.
+Use a mesma senha em `POSTGRES_PASSWORD` e `DATABASE_URL` (codifique caracteres especiais na URL).
+Configure `SESSION_SECRET` com segredo longo e aleatório e `DEMO_PASSWORD` com 10–128 caracteres.
+O `.env` é pessoal e ignorado pelo Git. Nunca publique seus valores.
 
-Para parar o banco sem apagar dados:
+Abra [localhost:5173](http://localhost:5173). Pare a aplicação com Ctrl+C.
+Pare o banco com `docker compose stop`; evite `down -v`, que apaga o volume.
 
-```powershell
-docker compose stop
+### Contas de demonstração
+
+- Cliente: `cliente@demo.test`
+- Barbeiros: `barbeiro1@demo.test` e `barbeiro2@demo.test`
+- Administrador: `admin@demo.test`
+
+Todas usam o valor local de `DEMO_PASSWORD` na primeira criação.
+Reaplicar seed não troca senhas, papéis, serviços existentes nem jornadas editadas.
+O seed exige `ALLOW_DEMO_SEED=true` e recusa produção.
+
+### Versão compilada e verificações
+
+```bash
+npm run check
+npm run build
+# Configure APP_ORIGIN=http://localhost:3001 em .env antes de iniciar.
+npm start
 ```
 
-Nao use `docker compose down -v` no dia a dia: isso apaga o volume do PostgreSQL.
+Abra [localhost:3001](http://localhost:3001). A API serve também o frontend.
+Com o banco ativo, `node scripts/validation/run.mjs` testa em banco temporário isolado;
+o usuário PostgreSQL precisa de permissão de criar banco (o usuário do Compose já tem).
+Veja [validação](docs/VALIDACAO_MANUAL.md), [API](docs/API.md), [demo](docs/DEMO.md) e [uso de IA](docs/USO_IA.md).
 
-## Proximo passo de implementacao
+Para Ollama, configure `AI_PROVIDER=ollama`, `OLLAMA_BASE_URL` e `OLLAMA_MODEL` com um modelo
+já instalado localmente. Falha ou timeout usa ajuda automática identificada. Nenhum modelo é baixado pelo projeto.
+Limites de requisições ficam em memória e pressupõem uma única instância da API.
 
-Completar o seed de demonstracao e implementar consulta/leitura de notificacoes e o job de lembretes do lote 8, seguindo `docs/GUIA_IMPLEMENTACAO.md`.
+## UML da implementação
+
+```mermaid
+classDiagram
+  class User {
+    UUID id
+    string email
+    UserRole role
+    boolean active
+  }
+  class Barber {
+    UUID id
+    string displayName
+  }
+  class Service {
+    UUID id
+    int priceCents
+    int durationMinutes
+    boolean active
+  }
+  class WeeklyHours {
+    int weekday
+    time startTime
+    time endTime
+  }
+  class TimeBlock {
+    datetime startsAt
+    datetime endsAt
+  }
+  class Appointment {
+    UUID id
+    datetime startsAt
+    datetime endsAt
+    string status
+    int priceCentsSnapshot
+    string serviceNameSnapshot
+  }
+  class Notification {
+    UUID id
+    string kind
+    datetime readAt
+  }
+  User "1" --> "0..1" Barber : perfil
+  Barber "1" --> "0..*" WeeklyHours : trabalha
+  Barber "1" --> "0..*" TimeBlock : bloqueia
+  User "1" --> "0..*" Appointment : cliente
+  Barber "1" --> "0..*" Appointment : atende
+  Service "1" --> "0..*" Appointment : contratado
+  User "1" --> "0..*" Notification : recebe
+  Appointment "1" --> "0..*" Notification : gera
+```
+
+```mermaid
+sequenceDiagram
+  actor Cliente
+  participant Web
+  participant API
+  participant Banco
+  Cliente->>Web: Seleciona serviço, barbeiro e dia
+  Web->>API: GET availability
+  API->>Banco: Consulta jornada, bloqueios e reservas
+  Banco-->>API: Intervalos atuais
+  API-->>Web: Horários disponíveis
+  Cliente->>Web: Confirma horário
+  Web->>API: POST appointments + sessão
+  API->>Banco: BEGIN; lock barbeiro; lock serviço
+  API->>Banco: Revalida disponibilidade
+  alt Horário ocupado
+    API->>Banco: ROLLBACK
+    API-->>Web: 409 SLOT_UNAVAILABLE
+    Web-->>Cliente: Atualiza horários
+  else Horário livre
+    API->>Banco: Insere reserva e notificações
+    API->>Banco: COMMIT
+    API-->>Web: 201 reserva
+    Web-->>Cliente: Exibe confirmação
+  end
+```
