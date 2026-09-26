@@ -1,6 +1,8 @@
 import type { PoolClient, QueryResultRow } from 'pg';
+import { DateTime } from 'luxon';
 
 import type {
+  AvailabilityQuery,
   BarberBlocksQuery,
   CreateTimeBlockInput,
   TimeBlockDTO,
@@ -8,11 +10,13 @@ import type {
 } from '@navalha/contracts';
 import { pool } from '../../db/pool.js';
 import { withTransaction } from '../../db/transaction.js';
+import { localDayBounds, type AvailabilityContext } from './availability.js';
 
 export class BarberNotFoundError extends Error {}
 export class ScheduleConflictError extends Error {}
 export class BlockConflictError extends Error {}
 export class BlockNotFoundError extends Error {}
+export class ServiceUnavailableError extends Error {}
 
 interface WeeklyHourRow extends QueryResultRow {
   weekday: number;
@@ -28,6 +32,19 @@ interface TimeBlockRow extends QueryResultRow {
   createdAt: Date;
 }
 
+interface AvailabilityServiceRow extends QueryResultRow {
+  durationMinutes: number;
+}
+
+interface ShopTimezoneRow extends QueryResultRow {
+  timezone: string;
+}
+
+interface InstantRangeRow extends QueryResultRow {
+  startsAt: Date;
+  endsAt: Date;
+}
+
 const timeBlockColumns = `
   id,
   starts_at AS "startsAt",
@@ -35,6 +52,66 @@ const timeBlockColumns = `
   reason,
   created_at AS "createdAt"
 `;
+
+export async function getAvailabilityContext(
+  queryInput: AvailabilityQuery,
+): Promise<AvailabilityContext> {
+  const [service, barber, shop] = await Promise.all([
+    pool.query<AvailabilityServiceRow>(
+      `SELECT duration_minutes AS "durationMinutes"
+       FROM services WHERE id = $1 AND active = TRUE`,
+      [queryInput.serviceId],
+    ),
+    pool.query(
+      `SELECT 1
+       FROM barbers b JOIN users u ON u.id = b.user_id
+       WHERE b.id = $1 AND b.active = TRUE AND u.active = TRUE AND u.role = 'BARBER'`,
+      [queryInput.barberId],
+    ),
+    pool.query<ShopTimezoneRow>('SELECT timezone FROM shop WHERE id = 1'),
+  ]);
+
+  if (!service.rows[0]) throw new ServiceUnavailableError('Active service not found.');
+  if (barber.rowCount === 0) throw new BarberNotFoundError('Active barber not found.');
+  const timezone = shop.rows[0]?.timezone;
+  if (!timezone) throw new Error('Shop timezone has not been configured.');
+
+  const day = DateTime.fromISO(queryInput.date, { zone: timezone });
+  const bounds = localDayBounds(queryInput.date, timezone);
+  const weekday = day.weekday;
+  const [hours, appointments, blocks] = await Promise.all([
+    pool.query<WeeklyHourRow>(
+      `SELECT weekday, start_time AS "startTime", end_time AS "endTime"
+       FROM weekly_hours WHERE barber_id = $1 AND weekday = $2
+       ORDER BY start_time`,
+      [queryInput.barberId, weekday],
+    ),
+    pool.query<InstantRangeRow>(
+      `SELECT starts_at AS "startsAt", ends_at AS "endsAt"
+       FROM appointments
+       WHERE barber_id = $1 AND status IN ('CONFIRMED', 'COMPLETED')
+         AND starts_at < $3 AND ends_at > $2`,
+      [queryInput.barberId, bounds.start, bounds.end],
+    ),
+    pool.query<InstantRangeRow>(
+      `SELECT starts_at AS "startsAt", ends_at AS "endsAt"
+       FROM time_blocks
+       WHERE barber_id = $1 AND starts_at < $3 AND ends_at > $2`,
+      [queryInput.barberId, bounds.start, bounds.end],
+    ),
+  ]);
+
+  return {
+    timezone,
+    durationMinutes: service.rows[0].durationMinutes,
+    intervals: hours.rows.map((row) => ({
+      weekday: row.weekday,
+      startTime: row.startTime.slice(0, 5),
+      endTime: row.endTime.slice(0, 5),
+    })),
+    busyIntervals: [...appointments.rows, ...blocks.rows],
+  };
+}
 
 export async function findWeeklyHours(userId: string): Promise<WeeklyHourInterval[]> {
   const result = await pool.query<WeeklyHourRow>(

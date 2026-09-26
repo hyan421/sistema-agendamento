@@ -2,20 +2,29 @@ import {
   timeBlockDTOSchema,
   weeklyHoursSchema,
   type BarberBlocksQuery,
+  type AvailabilityQuery,
+  type AvailabilitySlot,
   type CreateTimeBlockInput,
   type TimeBlockDTO,
   type WeeklyHourInterval,
 } from '@navalha/contracts';
 import { parseShopDateTime, InvalidShopDateTimeError } from '../../lib/time.js';
+import { buildAvailabilitySlots, type AvailabilityContext } from './availability.js';
 import {
   deleteTimeBlock,
   findTimeBlocks,
   findWeeklyHours,
+  getAvailabilityContext,
   insertTimeBlock,
   replaceWeeklyHours,
 } from './repository.js';
 
 export class InvalidBlockRangeError extends Error {}
+
+export async function getAvailability(input: AvailabilityQuery): Promise<AvailabilitySlot[]> {
+  const context: AvailabilityContext = await getAvailabilityContext(input);
+  return buildAvailabilitySlots(input.date, context);
+}
 
 export async function getWeeklyHours(userId: string): Promise<WeeklyHourInterval[]> {
   return findWeeklyHours(userId);

@@ -2,19 +2,23 @@ import { Router, type Request, type Response } from 'express';
 import type { ZodError } from 'zod';
 
 import {
+  availabilityQuerySchema,
   barberBlocksQuerySchema,
   createTimeBlockSchema,
   weeklyHoursSchema,
 } from '@navalha/contracts';
 import { requireRole, requireUser } from '../../middleware/authentication.js';
+import { AvailabilityDateOutOfRangeError } from './availability.js';
 import {
   BarberNotFoundError,
   BlockConflictError,
   BlockNotFoundError,
+  ServiceUnavailableError,
   ScheduleConflictError,
 } from './repository.js';
 import {
   createTimeBlock,
+  getAvailability,
   getTimeBlocks,
   getWeeklyHours,
   InvalidBlockRangeError,
@@ -24,6 +28,28 @@ import {
 
 export const scheduleRoutes = Router();
 const barberAccess = [requireUser, requireRole('BARBER')];
+
+scheduleRoutes.get('/availability', async (request, response) => {
+  const query = availabilityQuerySchema.safeParse(request.query);
+  if (!query.success) {
+    sendValidationError(response, query.error);
+    return;
+  }
+
+  try {
+    response.status(200).json({ data: await getAvailability(query.data) });
+  } catch (error) {
+    if (error instanceof AvailabilityDateOutOfRangeError) {
+      response.status(400).json({ error: { code: 'INVALID_DATE', message: error.message } });
+      return;
+    }
+    if (error instanceof ServiceUnavailableError || error instanceof BarberNotFoundError) {
+      response.status(404).json({ error: { code: 'NOT_FOUND', message: 'Service or barber not found.' } });
+      return;
+    }
+    throw error;
+  }
+});
 
 scheduleRoutes.get('/barber/weekly-hours', ...barberAccess, async (request, response) => {
   try {
