@@ -4,6 +4,9 @@ import type {
   AppointmentDTO,
   AvailabilityQuery,
   AvailabilitySlot,
+  AppointmentListQuery,
+  BarberAppointmentDTO,
+  BarberAppointmentsQuery,
   CreateAppointmentInput,
 } from '@navalha/contracts';
 import { getAvailabilityContext } from '../schedule/repository.js';
@@ -15,7 +18,14 @@ import {
   AppointmentBarberNotFoundError,
   AppointmentServiceNotFoundError,
   AppointmentSlotConflictError,
+  AppointmentNotFoundError,
+  AppointmentStateConflictError,
+  cancelAppointmentAtomically,
+  completeAppointmentAtomically,
   createAppointmentAtomically,
+  listBarberAppointments,
+  listClientAppointments,
+  type AppointmentPage,
   type LockedBookingContext,
 } from './repository.js';
 
@@ -23,6 +33,8 @@ export {
   AppointmentBarberNotFoundError,
   AppointmentServiceNotFoundError,
   AppointmentSlotConflictError,
+  AppointmentNotFoundError,
+  AppointmentStateConflictError,
 };
 
 export async function getAvailability(
@@ -42,6 +54,35 @@ export async function reserveAppointment(
   }
 
   return createAppointmentAtomically(clientId, input, (context) => validateSlot(context));
+}
+
+export async function listMine(
+  clientId: string,
+  query: AppointmentListQuery,
+): Promise<AppointmentPage<AppointmentDTO>> {
+  return listClientAppointments(clientId, query);
+}
+
+export async function listForBarber(
+  barberId: string,
+  query: BarberAppointmentsQuery,
+): Promise<AppointmentPage<BarberAppointmentDTO>> {
+  return listBarberAppointments(barberId, query);
+}
+
+export async function cancelAppointment(
+  appointmentId: string,
+  actorId: string,
+  role: 'CLIENT' | 'BARBER',
+): Promise<AppointmentDTO> {
+  return cancelAppointmentAtomically(appointmentId, actorId, role);
+}
+
+export async function completeAppointment(
+  appointmentId: string,
+  barberUserId: string,
+): Promise<AppointmentDTO> {
+  return completeAppointmentAtomically(appointmentId, barberUserId);
 }
 
 function validateSlot(context: LockedBookingContext): AvailabilitySlot {
