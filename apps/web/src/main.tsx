@@ -2,6 +2,7 @@ import { StrictMode, useEffect, useState, type FormEvent } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import './styles.css';
+import { Notifications } from './features/Notifications';
 import { request } from './lib/api';
 
 type WeeklyInterval = { weekday: number; startTime: string; endTime: string };
@@ -35,7 +36,7 @@ function today(): string {
 }
 
 function App(): React.JSX.Element {
-  const [view, setView] = useState<'book' | 'mine' | 'barber' | 'schedule'>('book');
+  const [view, setView] = useState<'book' | 'mine' | 'barber' | 'schedule' | 'notifications'>('book');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
   const [intervals, setIntervals] = useState<WeeklyInterval[]>([]);
@@ -179,6 +180,7 @@ function App(): React.JSX.Element {
       </header>
 
       <nav className="view-nav" aria-label="Navegação principal">
+        {currentUser && <button onClick={() => setView('notifications')}>Notificações<Notifications key={currentUser.id} badge /></button>}
         <button className={view === 'book' ? 'nav-active' : ''} type="button" onClick={() => setView('book')}>Agendar</button>
         {currentUser?.role === 'CLIENT' && <button className={view === 'mine' ? 'nav-active' : ''} type="button" onClick={() => setView('mine')}>Meus agendamentos</button>}
         {currentUser?.role === 'BARBER' && <>
@@ -201,6 +203,7 @@ function App(): React.JSX.Element {
         </div>
       )}
 
+      {view === 'notifications' && currentUser && <Notifications key={currentUser.id} />}
       {view === 'book' && (
         <BookingPanel
           user={currentUser}
