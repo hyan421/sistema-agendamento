@@ -2,11 +2,11 @@ import { StrictMode, useEffect, useState, type FormEvent } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import './styles.css';
+import { request } from './lib/api';
 
 type WeeklyInterval = { weekday: number; startTime: string; endTime: string };
 type TimeBlock = { id: string; startsAt: string; endsAt: string; reason: string; createdAt: string };
 type Envelope<T> = { data: T };
-type ApiError = { error?: { message?: string; fields?: Record<string, string> } };
 type Service = { id: string; name: string; description: string; category: string; durationMinutes: number; priceCents: number; active: boolean };
 type Barber = { id: string; displayName: string };
 type User = { id: string; name: string; email: string; role: 'CLIENT' | 'BARBER' | 'ADMIN' };
@@ -22,27 +22,6 @@ const weekdays = [
   { value: 6, label: 'Sábado' },
   { value: 7, label: 'Domingo' },
 ];
-
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, {
-    credentials: 'include',
-    ...init,
-    headers: {
-      ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
-      ...init?.headers,
-    },
-  });
-
-  if (response.status === 204) return undefined as T;
-  const payload = (await response.json().catch(() => null)) as ApiError | Envelope<T> | null;
-  if (!response.ok) {
-    const fields = payload && 'error' in payload ? payload.error?.fields : undefined;
-    const fieldMessage = fields ? Object.values(fields)[0] : undefined;
-    const message = payload && 'error' in payload ? payload.error?.message : undefined;
-    throw new Error(fieldMessage ?? message ?? 'Não foi possível concluir a solicitação.');
-  }
-  return payload as T;
-}
 
 function today(): string {
   const parts = new Intl.DateTimeFormat('en-CA', {
