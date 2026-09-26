@@ -28,7 +28,6 @@ async function migrate(): Promise<void> {
 
   try {
     await client.query('SELECT pg_advisory_lock($1)', [874231]);
-    await client.query('BEGIN');
     await ensureMigrationsTable(client);
 
     const applied = await client.query<{ version: string }>(
@@ -39,15 +38,16 @@ async function migrate(): Promise<void> {
     for (const file of files) {
       const version = file.replace(/\.sql$/, '');
       if (appliedVersions.has(version)) continue;
+      await client.query('BEGIN');
       const sql = await readFile(join(migrationsDirectory, file), 'utf8');
       await client.query(sql);
       await client.query('INSERT INTO schema_migrations (version) VALUES ($1)', [
         version,
       ]);
+      await client.query('COMMIT');
       console.log(`Migration aplicada: ${version}`);
     }
 
-    await client.query('COMMIT');
   } catch (error: unknown) {
     await client.query('ROLLBACK');
     throw error;
