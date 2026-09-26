@@ -2,6 +2,7 @@ import { StrictMode, useEffect, useState, type FormEvent } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import './styles.css';
+import { Auth } from './features/Auth';
 import { Services } from './features/Services';
 import { Catalog } from './features/Catalog';
 import { Assistant } from './features/Assistant';
@@ -183,7 +184,7 @@ function App(): React.JSX.Element {
   }
 
   const pageTitles: Record<string, string> = {
-    catalog: 'Serviços da barbearia', book: 'Reserve seu horário', mine: 'Meus agendamentos',
+    login: 'Entrar', register: 'Cadastro', catalog: 'Serviços da barbearia', book: 'Reserve seu horário', mine: 'Meus agendamentos',
     barber: 'Agenda do barbeiro', schedule: 'Horários de atendimento', notifications: 'Notificações',
     metrics: 'Painel administrativo', assistant: 'Assistente', services: 'Gerenciar serviços', notfound: 'Página não encontrada',
   };
@@ -229,6 +230,10 @@ function App(): React.JSX.Element {
         </div>
       )}
 
+      {(view === 'login' || view === 'register') && <Auth key={view} register={view === 'register'} onUser={(user) => {
+        setCurrentUser(user);
+        setView(user.role === 'ADMIN' ? 'metrics' : user.role === 'BARBER' ? 'barber' : 'book');
+      }} />}
       {view === 'services' && currentUser?.role === 'BARBER' && <Services />}
       {view === 'catalog' && <Catalog />}
       {view === 'notfound' && <section><h2>Página não encontrada</h2><a href="/">Voltar ao início</a></section>}
