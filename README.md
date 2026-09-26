@@ -85,3 +85,82 @@ Veja [validação](docs/VALIDACAO_MANUAL.md), [API](docs/API.md), [demo](docs/DE
 Para Ollama, configure `AI_PROVIDER=ollama`, `OLLAMA_BASE_URL` e `OLLAMA_MODEL` com um modelo
 já instalado localmente. Falha ou timeout usa ajuda automática identificada. Nenhum modelo é baixado pelo projeto.
 Limites de requisições ficam em memória e pressupõem uma única instância da API.
+
+## UML da implementação
+
+```mermaid
+classDiagram
+  class User {
+    UUID id
+    string email
+    UserRole role
+    boolean active
+  }
+  class Barber {
+    UUID id
+    string displayName
+  }
+  class Service {
+    UUID id
+    int priceCents
+    int durationMinutes
+    boolean active
+  }
+  class WeeklyHours {
+    int weekday
+    time startTime
+    time endTime
+  }
+  class TimeBlock {
+    datetime startsAt
+    datetime endsAt
+  }
+  class Appointment {
+    UUID id
+    datetime startsAt
+    datetime endsAt
+    string status
+    int priceCentsSnapshot
+    string serviceNameSnapshot
+  }
+  class Notification {
+    UUID id
+    string kind
+    datetime readAt
+  }
+  User "1" --> "0..1" Barber : perfil
+  Barber "1" --> "0..*" WeeklyHours : trabalha
+  Barber "1" --> "0..*" TimeBlock : bloqueia
+  User "1" --> "0..*" Appointment : cliente
+  Barber "1" --> "0..*" Appointment : atende
+  Service "1" --> "0..*" Appointment : contratado
+  User "1" --> "0..*" Notification : recebe
+  Appointment "1" --> "0..*" Notification : gera
+```
+
+```mermaid
+sequenceDiagram
+  actor Cliente
+  participant Web
+  participant API
+  participant Banco
+  Cliente->>Web: Seleciona serviço, barbeiro e dia
+  Web->>API: GET availability
+  API->>Banco: Consulta jornada, bloqueios e reservas
+  Banco-->>API: Intervalos atuais
+  API-->>Web: Horários disponíveis
+  Cliente->>Web: Confirma horário
+  Web->>API: POST appointments + sessão
+  API->>Banco: BEGIN; lock barbeiro; lock serviço
+  API->>Banco: Revalida disponibilidade
+  alt Horário ocupado
+    API->>Banco: ROLLBACK
+    API-->>Web: 409 SLOT_UNAVAILABLE
+    Web-->>Cliente: Atualiza horários
+  else Horário livre
+    API->>Banco: Insere reserva e notificações
+    API->>Banco: COMMIT
+    API-->>Web: 201 reserva
+    Web-->>Cliente: Exibe confirmação
+  end
+```
