@@ -2,7 +2,7 @@
 
 Documento de trabalho em texto Markdown, em português, preparado em 18/09/2026.
 Destinatário: agente de código e integrantes que revisarão a implementação.
-Estado: especificação; o repositório ainda não contém a aplicação descrita aqui.
+Estado: especificação com implementação dos lotes 1–10 e artefatos do lote 11; evidências e limites em VALIDACAO_MANUAL.md.
 
 ## 1. Como usar este documento
 
@@ -485,7 +485,7 @@ DEMO_PASSWORD=SUBSTITUIR_POR_SENHA_LOCAL_FORTE
 | `npm run commits:check` | verifica LOC staged; aceita intervalo para CI |
 | `npm run contributions:check` | relatório de autoria e percentuais, sem alterar Git |
 
-Instalação após esses arquivos estarem implementados (os comandos ainda não funcionam no repositório atual):
+Instalação local (comandos implementados; conferir também o README atualizado):
 
 ```bash
 node --version
