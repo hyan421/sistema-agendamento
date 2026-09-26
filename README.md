@@ -6,9 +6,15 @@ Equipe: Hyan Carvalhido Ferreira, Fernando De Jesus Teixeira Goncalves Filho e J
 
 ## O que ja existe neste momento
 
-Este repositorio tem a configuracao inicial e o **lote 2** do guia: validacao de ambiente, pool PostgreSQL e migrations iniciais.
+Este repositorio tem a configuracao inicial e os **lotes 2 a 5** concluidos, com o **lote 6 em andamento**:
 
-O banco ja possui as tabelas `users`, `shop`, `session` e `schema_migrations`. Ainda nao ha login, catalogo nem reservas. `npm run db:seed` continua reservado para o proximo lote.
+- **Lote 2 concluido:** validacao de ambiente, pool PostgreSQL e executor de migrations. O seed de demonstracao ainda esta pendente.
+- **Lote 3 concluido:** cadastro e login de clientes, sessoes persistentes em PostgreSQL, logout e hash de senha com `scrypt`.
+- **Lote 4 concluido:** catalogo publico de servicos e barbeiros; barbeiros autenticados podem criar, editar e desativar servicos.
+- **Lote 5 concluido:** jornada semanal e bloqueios de agenda, com validacao de conflitos e acesso restrito ao barbeiro responsavel.
+- **Lote 6 em andamento:** API calcula disponibilidade na zona da loja e cria reservas com transacao, lock do barbeiro, snapshots e notificacoes de confirmacao. Typecheck, lint, build e regras do calculo foram verificados; falta validar migrations e concorrencia contra PostgreSQL.
+
+As migrations `001` a `006` definem usuarios, loja, sessoes, catalogo, agenda, reservas e notificacoes. O calculo de disponibilidade e os gates `npm run check` e `npm run build` foram verificados; a aplicacao das migrations e a prova de concorrencia ainda precisam ser executadas contra PostgreSQL.
 
 ## O que voce precisa instalar (uma vez no computador)
 
@@ -66,13 +72,13 @@ O comando e seguro para repetir: migrations ja aplicadas nao sao executadas nova
 
 `npm ci` so funciona depois de existir `package-lock.json` (gerado pelo primeiro `npm install`).
 
-Para ver a pagina placeholder do frontend:
+Para iniciar a API e o frontend depois de aplicar as migrations:
 
 ```powershell
-npm run dev -w @navalha/web
+npm run dev
 ```
 
-Abra [http://localhost:5173](http://localhost:5173). A API ainda nao sobe neste lote.
+Abra [http://localhost:5173](http://localhost:5173). O Vite encaminha as chamadas `/api` para a API local.
 
 Para parar o banco sem apagar dados:
 
@@ -84,4 +90,4 @@ Nao use `docker compose down -v` no dia a dia: isso apaga o volume do PostgreSQL
 
 ## Proximo passo de implementacao
 
-Implementar o cadastro, login e logout no lote 3, seguindo `docs/GUIA_IMPLEMENTACAO.md`.
+Completar o seed de demonstracao e validar migrations e concorrencia com PostgreSQL; em seguida, implementar listagem, cancelamento e conclusao de reservas no lote 7, seguindo `docs/GUIA_IMPLEMENTACAO.md`.
