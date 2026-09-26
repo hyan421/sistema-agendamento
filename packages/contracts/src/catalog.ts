@@ -2,6 +2,11 @@ import { z } from 'zod';
 
 export const serviceCategorySchema = z.enum(['CUT', 'BEARD', 'COMBO']);
 
+export const barberDTOSchema = z.strictObject({
+  id: z.uuid(),
+  displayName: z.string(),
+});
+
 const serviceFields = {
   name: z.string().trim().min(3).max(80),
   description: z.string().max(500),
@@ -54,6 +59,7 @@ export const updateServiceSchema = z
   });
 
 export type ServiceCategory = z.infer<typeof serviceCategorySchema>;
+export type BarberDTO = z.infer<typeof barberDTOSchema>;
 export type ServiceDTO = z.infer<typeof serviceDTOSchema>;
 export type PublicServicesQuery = z.infer<typeof publicServicesQuerySchema>;
 export type CreateServiceInput = z.infer<typeof createServiceSchema>;
