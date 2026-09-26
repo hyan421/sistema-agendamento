@@ -2,6 +2,7 @@ import { StrictMode, useEffect, useState, type FormEvent } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import './styles.css';
+import { Metrics } from './features/Metrics';
 import { Notifications } from './features/Notifications';
 import { request } from './lib/api';
 
@@ -36,7 +37,7 @@ function today(): string {
 }
 
 function App(): React.JSX.Element {
-  const [view, setView] = useState<'book' | 'mine' | 'barber' | 'schedule' | 'notifications'>('book');
+  const [view, setView] = useState<'book' | 'mine' | 'barber' | 'schedule' | 'notifications' | 'metrics'>('book');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
   const [intervals, setIntervals] = useState<WeeklyInterval[]>([]);
@@ -180,6 +181,7 @@ function App(): React.JSX.Element {
       </header>
 
       <nav className="view-nav" aria-label="Navegação principal">
+        {currentUser?.role === 'ADMIN' && <button onClick={() => setView('metrics')}>Métricas</button>}
         {currentUser && <button onClick={() => setView('notifications')}>Notificações<Notifications key={currentUser.id} badge /></button>}
         <button className={view === 'book' ? 'nav-active' : ''} type="button" onClick={() => setView('book')}>Agendar</button>
         {currentUser?.role === 'CLIENT' && <button className={view === 'mine' ? 'nav-active' : ''} type="button" onClick={() => setView('mine')}>Meus agendamentos</button>}
@@ -203,6 +205,7 @@ function App(): React.JSX.Element {
         </div>
       )}
 
+      {view === 'metrics' && currentUser?.role === 'ADMIN' && <Metrics />}
       {view === 'notifications' && currentUser && <Notifications key={currentUser.id} />}
       {view === 'book' && (
         <BookingPanel
