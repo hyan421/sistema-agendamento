@@ -1,3 +1,4 @@
+import { verifyShopTimezone } from './modules/shop/service.js';
 import { env } from './config/env.js';
 import { closeDatabase, verifyDatabaseConnection } from './db/pool.js';
 import app from './app.js';
@@ -9,6 +10,7 @@ let server: ReturnType<typeof app.listen> | undefined;
 
 async function main(): Promise<void> {
   await verifyDatabaseConnection();
+  await verifyShopTimezone();
   stopReminders = startReminders();
   server = app.listen(env.port, '127.0.0.1', () => {
     console.log(`Navalha & Hora API ouvindo em http://127.0.0.1:${env.port}.`);
