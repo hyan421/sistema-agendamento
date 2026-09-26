@@ -2,6 +2,7 @@ import { StrictMode, useEffect, useState, type FormEvent } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import './styles.css';
+import { Services } from './features/Services';
 import { Catalog } from './features/Catalog';
 import { Assistant } from './features/Assistant';
 import { Metrics } from './features/Metrics';
@@ -186,6 +187,7 @@ function App(): React.JSX.Element {
       </header>
 
       <nav className="view-nav" aria-label="Navegação principal">
+        {currentUser?.role === 'BARBER' && <button onClick={() => setView('services')}>Serviços</button>}
         <button onClick={() => setView('catalog')}>Catálogo</button>
         {!currentUser && <><a href="/entrar">Entrar</a><a href="/cadastro">Cadastrar</a></>}
         {currentUser?.role === 'CLIENT' && <button onClick={() => setView('assistant')}>Assistente</button>}
@@ -213,6 +215,7 @@ function App(): React.JSX.Element {
         </div>
       )}
 
+      {view === 'services' && currentUser?.role === 'BARBER' && <Services />}
       {view === 'catalog' && <Catalog />}
       {view === 'notfound' && <section><h2>Página não encontrada</h2><a href="/">Voltar ao início</a></section>}
       {!sessionLoading && !currentUser && ['mine', 'barber', 'schedule', 'notifications', 'metrics', 'assistant', 'services'].includes(view) &&
