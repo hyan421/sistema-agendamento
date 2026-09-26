@@ -101,6 +101,30 @@ export const appointmentDTOSchema = z.strictObject({
   createdAt: z.iso.datetime(),
 });
 
+export const appointmentScopeSchema = z.enum(['upcoming', 'history']);
+
+export const appointmentListQuerySchema = z.strictObject({
+  scope: appointmentScopeSchema,
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+});
+
+export const barberAppointmentsQuerySchema = z.strictObject({
+  date: localDateSchema,
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+});
+
+export const barberAppointmentDTOSchema = appointmentDTOSchema.extend({
+  clientName: z.string(),
+});
+
+export const appointmentListMetaSchema = z.strictObject({
+  page: z.number().int().min(1),
+  pageSize: z.number().int().min(1).max(100),
+  total: z.number().int().min(0),
+});
+
 export type WeeklyHourInterval = z.infer<typeof weeklyHourIntervalSchema>;
 export type WeeklyHoursInput = z.infer<typeof weeklyHoursSchema>;
 export type BarberBlocksQuery = z.infer<typeof barberBlocksQuerySchema>;
@@ -111,3 +135,8 @@ export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 export type AvailabilitySlot = z.infer<typeof availabilitySlotSchema>;
 export type AppointmentStatus = z.infer<typeof appointmentStatusSchema>;
 export type AppointmentDTO = z.infer<typeof appointmentDTOSchema>;
+export type AppointmentScope = z.infer<typeof appointmentScopeSchema>;
+export type AppointmentListQuery = z.infer<typeof appointmentListQuerySchema>;
+export type BarberAppointmentsQuery = z.infer<typeof barberAppointmentsQuerySchema>;
+export type BarberAppointmentDTO = z.infer<typeof barberAppointmentDTOSchema>;
+export type AppointmentListMeta = z.infer<typeof appointmentListMetaSchema>;
