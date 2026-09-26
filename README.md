@@ -6,15 +6,16 @@ Equipe: Hyan Carvalhido Ferreira, Fernando De Jesus Teixeira Goncalves Filho e J
 
 ## O que ja existe neste momento
 
-Este repositorio tem a configuracao inicial e os **lotes 2 a 5** concluidos, com o **lote 6 em andamento**:
+Este repositorio tem a configuracao inicial e os **lotes 2 a 7** implementados:
 
 - **Lote 2 concluido:** validacao de ambiente, pool PostgreSQL e executor de migrations. O seed de demonstracao ainda esta pendente.
 - **Lote 3 concluido:** cadastro e login de clientes, sessoes persistentes em PostgreSQL, logout e hash de senha com `scrypt`.
 - **Lote 4 concluido:** catalogo publico de servicos e barbeiros; barbeiros autenticados podem criar, editar e desativar servicos.
 - **Lote 5 concluido:** jornada semanal e bloqueios de agenda, com validacao de conflitos e acesso restrito ao barbeiro responsavel.
-- **Lote 6 em andamento:** API calcula disponibilidade na zona da loja e cria reservas com transacao, lock do barbeiro, snapshots e notificacoes de confirmacao. Typecheck, lint, build e regras do calculo foram verificados; falta validar migrations e concorrencia contra PostgreSQL.
+- **Lote 6 validado:** API calcula disponibilidade na zona da loja e cria reservas com transacao, lock do barbeiro, snapshots e notificacoes de confirmacao. Duas reservas concorrentes foram exercitadas contra PostgreSQL: uma confirmou e a outra recebeu conflito.
+- **Lote 7 validado:** clientes consultam proximos agendamentos e historico; clientes e barbeiros autorizados podem cancelar, e o barbeiro consulta a agenda diaria e conclui atendimentos apos o termino. Os fluxos HTTP foram exercitados com sessoes e contas temporarias, removidas ao final.
 
-As migrations `001` a `006` definem usuarios, loja, sessoes, catalogo, agenda, reservas e notificacoes. O calculo de disponibilidade e os gates `npm run check` e `npm run build` foram verificados; a aplicacao das migrations e a prova de concorrencia ainda precisam ser executadas contra PostgreSQL.
+As migrations `001` a `006` definem usuarios, loja, sessoes, catalogo, agenda, reservas e notificacoes. Typecheck, lint, build e migrations passaram; as constraints de sobreposicao e a unicidade de notificacoes tambem foram verificadas contra PostgreSQL. O seed de demonstracao ainda esta pendente.
 
 ## O que voce precisa instalar (uma vez no computador)
 
@@ -90,4 +91,4 @@ Nao use `docker compose down -v` no dia a dia: isso apaga o volume do PostgreSQL
 
 ## Proximo passo de implementacao
 
-Completar o seed de demonstracao e validar migrations e concorrencia com PostgreSQL; em seguida, implementar listagem, cancelamento e conclusao de reservas no lote 7, seguindo `docs/GUIA_IMPLEMENTACAO.md`.
+Completar o seed de demonstracao e implementar consulta/leitura de notificacoes e o job de lembretes do lote 8, seguindo `docs/GUIA_IMPLEMENTACAO.md`.
