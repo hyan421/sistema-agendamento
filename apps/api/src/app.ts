@@ -1,3 +1,4 @@
+import { extname } from 'node:path';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { shopRoutes } from './modules/shop/routes.js';
@@ -64,6 +65,13 @@ if (existsSync(webDirectory)) {
   const pages = ['/', '/entrar', '/cadastro', '/agendar', '/meus-agendamentos',
     '/notificacoes', '/assistente', '/profissional/agenda', '/profissional/servicos', '/admin'];
   app.get(pages, (_req, res) => { res.sendFile(`${webDirectory}/index.html`); });
+  app.use((req, res, next) => {
+    if (req.method === 'GET' && !/^\/api(?:\/|$)/.test(req.path) && !extname(req.path) && req.accepts('html')) {
+      res.status(404).sendFile(`${webDirectory}/index.html`);
+      return;
+    }
+    next();
+  });
 }
 app.use((_request, response) => {
   response.status(404).json({ error: { code: 'NOT_FOUND', message: 'Resource not found.' } });
