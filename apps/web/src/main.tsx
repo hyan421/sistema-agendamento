@@ -5,6 +5,8 @@ import './styles.css';
 import { Assistant } from './features/Assistant';
 import { Metrics } from './features/Metrics';
 import { Notifications } from './features/Notifications';
+import { BrowserRouter, useLocation } from 'react-router';
+import { useView } from './lib/navigation';
 import { request } from './lib/api';
 
 type WeeklyInterval = { weekday: number; startTime: string; endTime: string };
@@ -38,7 +40,8 @@ function today(): string {
 }
 
 function App(): React.JSX.Element {
-  const [view, setView] = useState<'book' | 'mine' | 'barber' | 'schedule' | 'notifications' | 'metrics' | 'assistant'>('book');
+  const [view, setView] = useView();
+  const location = useLocation();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
   const [intervals, setIntervals] = useState<WeeklyInterval[]>([]);
@@ -182,6 +185,8 @@ function App(): React.JSX.Element {
       </header>
 
       <nav className="view-nav" aria-label="Navegação principal">
+        <button onClick={() => setView('catalog')}>Catálogo</button>
+        {!currentUser && <><a href="/entrar">Entrar</a><a href="/cadastro">Cadastrar</a></>}
         {currentUser?.role === 'CLIENT' && <button onClick={() => setView('assistant')}>Assistente</button>}
         {currentUser?.role === 'ADMIN' && <button onClick={() => setView('metrics')}>Métricas</button>}
         {currentUser && <button onClick={() => setView('notifications')}>Notificações<Notifications key={currentUser.id} badge /></button>}
@@ -207,11 +212,17 @@ function App(): React.JSX.Element {
         </div>
       )}
 
+      {view === 'notfound' && <section><h2>Página não encontrada</h2><a href="/">Voltar ao início</a></section>}
+      {!sessionLoading && !currentUser && ['mine', 'barber', 'schedule', 'notifications', 'metrics', 'assistant', 'services'].includes(view) &&
+        <p>Entre na sua conta para acessar esta página. <a href="/entrar">Entrar</a></p>}
+      {currentUser && ((['barber', 'schedule', 'services'].includes(view) && currentUser.role !== 'BARBER') ||
+        (view === 'metrics' && currentUser.role !== 'ADMIN') || (['mine', 'assistant'].includes(view) && currentUser.role !== 'CLIENT')) &&
+        <p role="alert">Sua conta não tem acesso a esta página.</p>}
       {view === 'assistant' && currentUser?.role === 'CLIENT' && <Assistant />}
       {view === 'metrics' && currentUser?.role === 'ADMIN' && <Metrics />}
       {view === 'notifications' && currentUser && <Notifications key={currentUser.id} />}
       {view === 'book' && (
-        <BookingPanel
+        <BookingPanel key={location.pathname + location.search}
           user={currentUser}
           onUser={setCurrentUser}
           setError={setError}
@@ -224,7 +235,7 @@ function App(): React.JSX.Element {
       {view === 'barber' && currentUser?.role === 'BARBER' && (
         <BarberAppointmentsPanel setError={setError} setNotice={setNotice} />
       )}
-      {view === 'schedule' && (loading ? (
+      {view === 'schedule' && currentUser?.role === 'BARBER' && (loading ? (
         <p className="loading-state" aria-live="polite">Carregando agenda...</p>
       ) : (
         <div className="schedule-layout">
@@ -398,16 +409,17 @@ function BookingPanel({
   const [services, setServices] = useState<Service[]>([]);
   const [barbers, setBarbers] = useState<Barber[]>([]);
   const [slots, setSlots] = useState<Array<{ startsAt: string; endsAt: string; durationMinutes: number }>>([]);
-  const [serviceId, setServiceId] = useState('');
-  const [barberId, setBarberId] = useState('');
-  const [date, setDate] = useState(today);
+  const params = new URLSearchParams(window.location.search);
+  const [serviceId, setServiceId] = useState(params.get('serviceId') ?? '');
+  const [barberId, setBarberId] = useState(params.get('barberId') ?? '');
+  const [date, setDate] = useState(() => params.get('date') ?? (params.get('startsAt') ? new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date(params.get('startsAt')!)) : today()));
   const [selectedSlot, setSelectedSlot] = useState('');
   const [availabilityRevision, setAvailabilityRevision] = useState(0);
   const [loadingOptions, setLoadingOptions] = useState(true);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [authRequired, setAuthRequired] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [authRequired, setAuthRequired] = useState(['/entrar', '/cadastro'].includes(window.location.pathname));
+  const [authMode, setAuthMode] = useState<'login' | 'register'>(window.location.pathname === '/cadastro' ? 'register' : 'login');
   const [authName, setAuthName] = useState('');
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
@@ -801,6 +813,6 @@ if (!root) throw new Error('Elemento #root ausente em index.html');
 
 createRoot(root).render(
   <StrictMode>
-    <App />
+    <BrowserRouter><App /></BrowserRouter>
   </StrictMode>,
 );
