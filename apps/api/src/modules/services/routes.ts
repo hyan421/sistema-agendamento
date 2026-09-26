@@ -11,11 +11,16 @@ import { ServiceNotFoundError } from './service.js';
 import {
   createService,
   editService,
+  listBarbers,
   listManagedServices,
   listServices,
 } from './service.js';
 
 export const serviceRoutes = Router();
+
+serviceRoutes.get('/barbers', async (_request, response) => {
+  response.status(200).json({ data: await listBarbers() });
+});
 
 serviceRoutes.get('/services', async (request, response) => {
   const filters = publicServicesQuerySchema.safeParse(request.query);

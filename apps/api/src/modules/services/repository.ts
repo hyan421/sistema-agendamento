@@ -2,6 +2,7 @@ import type { QueryResultRow } from 'pg';
 
 import type {
   CreateServiceInput,
+  BarberDTO,
   PublicServicesQuery,
   ServiceCategory,
   UpdateServiceInput,
@@ -54,6 +55,17 @@ export async function listPublicServices(
        )
      ORDER BY category, name, id`,
     [filters.category ?? null, filters.minPriceCents ?? null, filters.maxPriceCents ?? null, filters.location ?? null],
+  );
+  return result.rows;
+}
+
+export async function listActiveBarbers(): Promise<BarberDTO[]> {
+  const result = await query<QueryResultRow & BarberDTO>(
+    `SELECT b.id, b.display_name AS "displayName"
+     FROM barbers b
+     JOIN users u ON u.id = b.user_id
+     WHERE b.active = TRUE AND u.active = TRUE AND u.role = 'BARBER'
+     ORDER BY b.display_name, b.id`,
   );
   return result.rows;
 }

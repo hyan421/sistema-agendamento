@@ -1,18 +1,24 @@
 import {
   serviceDTOSchema,
   type CreateServiceInput,
+  type BarberDTO,
   type PublicServicesQuery,
   type ServiceDTO,
   type UpdateServiceInput,
 } from '@navalha/contracts';
 import {
   insertService,
+  listActiveBarbers,
   listBarberServices as findBarberServices,
   listPublicServices as findPublicServices,
   updateServiceById,
 } from './repository.js';
 
 export class ServiceNotFoundError extends Error {}
+
+export async function listBarbers(): Promise<BarberDTO[]> {
+  return listActiveBarbers();
+}
 
 export async function listServices(filters: PublicServicesQuery): Promise<ServiceDTO[]> {
   const services = await findPublicServices(filters);
