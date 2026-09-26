@@ -53,7 +53,7 @@ function numstatForCommit(sha) {
       sha,
     ]);
   }
-  return git(['diff', '--numstat', `${parents[0]}...${sha}`]);
+  return git(['diff', '--numstat', parents[0], sha]);
 }
 
 if (useStaged) {
@@ -62,7 +62,7 @@ if (useStaged) {
     console.error('Arquivos binarios nao mensuraveis:', stats.binaries.join(', '));
   }
   console.log(`LOC staged: ${stats.loc} (add ${stats.added} + del ${stats.removed})`);
-  if (stats.loc > LIMIT) {
+  if (stats.binaries.length > 0 || stats.loc > LIMIT) {
     console.error(`Acima do teto de ${LIMIT} LOC. Justifique com LOC-Exception.`);
     process.exit(1);
   }
@@ -76,7 +76,7 @@ for (const sha of commitsInRange(range)) {
   const body = git(['log', '-1', '--format=%b', sha]);
   const hasException = body.includes('LOC-Exception:');
   console.log(`${sha.slice(0, 7)} ${stats.loc} LOC ${subject}`);
-  if (stats.loc > LIMIT && !hasException) {
+  if ((stats.loc > LIMIT || stats.binaries.length > 0) && !hasException) {
     console.error(`  sem LOC-Exception e acima de ${LIMIT}`);
     failed = true;
   }
