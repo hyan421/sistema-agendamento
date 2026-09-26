@@ -38,6 +38,7 @@ jobs:
       - run: npm run build
       - run: npm run db:migrate
       - run: node scripts/validation/run.mjs
+      - run: node scripts/validation/assistant.mjs
       - name: Verificar commits
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
