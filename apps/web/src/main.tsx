@@ -2,6 +2,7 @@ import { StrictMode, useEffect, useState, type FormEvent } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import './styles.css';
+import { Catalog } from './features/Catalog';
 import { Assistant } from './features/Assistant';
 import { Metrics } from './features/Metrics';
 import { Notifications } from './features/Notifications';
@@ -212,6 +213,7 @@ function App(): React.JSX.Element {
         </div>
       )}
 
+      {view === 'catalog' && <Catalog />}
       {view === 'notfound' && <section><h2>Página não encontrada</h2><a href="/">Voltar ao início</a></section>}
       {!sessionLoading && !currentUser && ['mine', 'barber', 'schedule', 'notifications', 'metrics', 'assistant', 'services'].includes(view) &&
         <p>Entre na sua conta para acessar esta página. <a href="/entrar">Entrar</a></p>}
