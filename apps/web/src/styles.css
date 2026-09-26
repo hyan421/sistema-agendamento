@@ -113,3 +113,70 @@ input:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+
+.view-nav { display: flex; align-items: center; gap: 4px; min-height: 49px; border-bottom: 1px solid var(--line); }
+.view-nav button { height: 49px; padding: 0 14px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #737972; font-size: 12px; font-weight: 600; }
+.view-nav button:hover, .view-nav .nav-active { border-bottom-color: var(--accent); color: var(--ink); }
+.booking-layout { display: grid; grid-template-columns: minmax(0, 1fr) 330px; align-items: start; gap: 22px; }
+.booking-main { display: grid; gap: 18px; min-width: 0; }
+.booking-selectors { display: grid; grid-template-columns: 1.4fr 1fr .8fr; gap: 14px; padding-top: 18px; }
+.booking-selectors label, .auth-form label { display: grid; gap: 7px; color: #555b55; font-size: 11px; font-weight: 700; }
+.booking-selectors select, .auth-form input { width: 100%; height: 41px; padding: 0 10px; border: 1px solid #d8ddd6; border-radius: 2px; background: #fff; color: var(--ink); font-size: 12px; }
+.slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 8px; padding-top: 18px; }
+.slot-button { min-height: 39px; border: 1px solid #d8ddd6; border-radius: 2px; background: #fff; color: var(--ink); font-family: var(--mono); font-size: 11px; }
+.slot-button:hover { border-color: var(--accent); }
+.slot-button.slot-selected { border-color: var(--accent); background: var(--accent-soft); color: #7d3c29; }
+.booking-summary { position: sticky; top: 18px; }
+.booking-summary h2 { margin-bottom: 20px; }
+.booking-summary dl { margin: 0; }
+.booking-summary dl > div { display: flex; justify-content: space-between; gap: 14px; padding: 12px 0; border-top: 1px solid #eceeea; }
+.booking-summary dt { color: var(--muted); font-size: 11px; }
+.booking-summary dd { max-width: 60%; margin: 0; text-align: right; font-size: 12px; font-weight: 600; }
+.booking-summary .summary-price dd { color: var(--accent); font-size: 15px; }
+.summary-confirm { width: 100%; margin-top: 10px; }
+.summary-note { margin: 12px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.auth-section { max-width: 580px; }
+.auth-form { display: grid; gap: 13px; padding-top: 17px; }
+.auth-actions { display: flex; align-items: center; gap: 16px; padding-top: 3px; }
+.segmented-control { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--line); background: var(--wash); }
+.segmented-control button { min-height: 31px; padding: 0 11px; border: 0; background: transparent; color: var(--muted); font-size: 11px; }
+.segmented-control button.segment-active { background: var(--paper); color: var(--ink); box-shadow: 0 1px 3px #2225221c; }
+.appointment-list-section { min-height: 230px; }
+.appointment-list { margin: 0; padding: 0; list-style: none; }
+.appointment-row { display: grid; grid-template-columns: 180px minmax(160px, 1fr) 105px auto; align-items: center; gap: 14px; min-height: 74px; padding: 12px 0; border-bottom: 1px solid #eceeea; }
+.appointment-when, .appointment-info { display: grid; gap: 5px; }
+.appointment-when strong, .appointment-info strong { font-size: 12px; }
+.appointment-when span, .appointment-info span { color: var(--muted); font-size: 10px; }
+.status-label { justify-self: start; padding: 5px 7px; border-radius: 2px; background: #edf3ee; color: #386b52; font-size: 10px; font-weight: 700; white-space: nowrap; }
+.status-cancelled { background: #f6eae7; color: #994532; }
+.status-completed { background: #edf0f4; color: #5d6977; }
+.appointment-action { justify-self: end; }
+.barber-appointment-list .appointment-row { grid-template-columns: 130px minmax(170px, 1fr) 105px auto; }
+.appointment-actions { display: flex; justify-content: end; gap: 10px; }
+.appointment-actions button:disabled { color: #a1a59f; text-decoration: none; }
+.day-picker { display: grid; gap: 5px; color: var(--muted); font-size: 10px; }
+.day-picker input { min-width: 145px; }
+.pagination { display: flex; justify-content: space-between; align-items: center; padding-top: 17px; color: var(--muted); font-family: var(--mono); font-size: 10px; }
+.pagination > div { display: flex; align-items: center; gap: 10px; }
+.pagination button { width: 28px; height: 28px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-size: 18px; line-height: 1; }
+.pagination button:disabled { color: #aeb2ac; }
+
+@media (max-width: 850px) {
+  .booking-layout { grid-template-columns: minmax(0, 1fr) 280px; gap: 14px; }
+  .appointment-row, .barber-appointment-list .appointment-row { grid-template-columns: 140px minmax(120px, 1fr) auto; }
+  .appointment-actions, .appointment-action { grid-column: 2 / -1; justify-self: start; }
+}
+
+@media (max-width: 620px) {
+  .view-nav { overflow-x: auto; }
+  .view-nav button { flex: 0 0 auto; padding: 0 10px; font-size: 11px; }
+  .booking-layout { grid-template-columns: 1fr; }
+  .booking-summary { position: static; grid-row: 1; }
+  .booking-selectors { grid-template-columns: 1fr; }
+  .slot-grid { grid-template-columns: repeat(auto-fill, minmax(66px, 1fr)); }
+  .appointment-row, .barber-appointment-list .appointment-row { grid-template-columns: 1fr auto; gap: 8px; }
+  .appointment-info { grid-column: 1; }
+  .status-label { grid-column: 2; grid-row: 1; }
+  .appointment-actions, .appointment-action { grid-column: 1 / -1; justify-self: start; }
+  .segmented-control button { padding: 0 7px; font-size: 10px; }
+}
