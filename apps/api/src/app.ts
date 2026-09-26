@@ -17,6 +17,8 @@ import { notificationRoutes } from './modules/notifications/routes.js';
 
 import { metricsRoutes } from './modules/metrics/routes.js';
 
+import { assistantRoutes } from './modules/assistant/routes.js';
+
 const app = express();
 const PgSession = connectPgSimple(session);
 const sessionCookieMaxAge = 8 * 60 * 60 * 1000;
@@ -55,7 +57,7 @@ app.use(
   }),
 );
 
-app.use('/api/v1', authRoutes, serviceRoutes, scheduleRoutes, appointmentRoutes, notificationRoutes, metricsRoutes, shopRoutes);
+app.use('/api/v1', authRoutes, serviceRoutes, scheduleRoutes, appointmentRoutes, notificationRoutes, metricsRoutes, shopRoutes, assistantRoutes);
 const webDirectory = fileURLToPath(new URL('../../web/dist/', import.meta.url));
 if (existsSync(webDirectory)) {
   app.use(express.static(webDirectory, { index: false }));
