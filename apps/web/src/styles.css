@@ -180,3 +180,19 @@ input:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid 
   .appointment-actions, .appointment-action { grid-column: 1 / -1; justify-self: start; }
   .segmented-control button { padding: 0 7px; font-size: 10px; }
 }
+/* Formularios e paineis adicionados nos lotes finais. */
+.catalog-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 16px; }
+.catalog-filters, .service-form { display: grid; gap: 16px; margin-block: 20px; }
+.schedule-section > form { display: grid; gap: 14px; }
+.schedule-section label { display: grid; gap: 6px; min-width: 0; }
+.schedule-section input, .schedule-section select, .schedule-section textarea { max-width: 100%; box-sizing: border-box; }
+.schedule-section textarea { min-height: 90px; font: inherit; padding: 10px; }
+.schedule-section article, .schedule-section p { overflow-wrap: anywhere; }
+.view-nav { flex-wrap: wrap; }
+.view-nav a { color: inherit; padding: 10px; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid #99542f; outline-offset: 3px; }
+button:disabled { cursor: wait; opacity: .6; }
+@media (max-width: 480px) {
+  .topbar { flex-wrap: wrap; gap: 12px; }
+  .schedule-section { min-width: 0; }
+}

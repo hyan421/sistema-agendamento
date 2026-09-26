@@ -9,7 +9,7 @@ import { Metrics } from './features/Metrics';
 import { Notifications } from './features/Notifications';
 import { BrowserRouter, useLocation } from 'react-router';
 import { useView } from './lib/navigation';
-import { request } from './lib/api';
+import { ApiError, request } from './lib/api';
 
 type WeeklyInterval = { weekday: number; startTime: string; endTime: string };
 type TimeBlock = { id: string; startsAt: string; endsAt: string; reason: string; createdAt: string };
@@ -29,6 +29,15 @@ const weekdays = [
   { value: 6, label: 'Sábado' },
   { value: 7, label: 'Domingo' },
 ];
+
+function initialBookingDate(): string {
+  const params = new URLSearchParams(window.location.search);
+  const raw = params.get('date');
+  if (raw && /^\d{4}-\d{2}-\d{2}$/.test(raw) && Number.isFinite(Date.parse(raw))) return raw;
+  const instant = new Date(params.get('startsAt') ?? '');
+  return Number.isFinite(instant.getTime())
+    ? new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(instant) : today();
+}
 
 function today(): string {
   const parts = new Intl.DateTimeFormat('en-CA', {
@@ -173,6 +182,11 @@ function App(): React.JSX.Element {
     }
   }
 
+  const pageTitles: Record<string, string> = {
+    catalog: 'Serviços da barbearia', book: 'Reserve seu horário', mine: 'Meus agendamentos',
+    barber: 'Agenda do barbeiro', schedule: 'Horários de atendimento', notifications: 'Notificações',
+    metrics: 'Painel administrativo', assistant: 'Assistente', services: 'Gerenciar serviços', notfound: 'Página não encontrada',
+  };
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -203,10 +217,10 @@ function App(): React.JSX.Element {
 
       <section className="page-heading">
         <div>
-          <p className="eyebrow">{view === 'book' ? 'RESERVAS / NOVO AGENDAMENTO' : view === 'mine' ? 'RESERVAS / CLIENTE' : view === 'barber' ? 'AGENDA / PROFISSIONAL' : 'AGENDA / CONFIGURAÇÃO'}</p>
-          <h1>{view === 'book' ? 'Reserve seu horário' : view === 'mine' ? 'Meus agendamentos' : view === 'barber' ? 'Agenda do barbeiro' : 'Horários de atendimento'}</h1>
+          <p className="eyebrow">NAVALHA &amp; HORA</p>
+          <h1>{pageTitles[view]}</h1>
         </div>
-        <p className="heading-note">{view === 'book' ? 'Serviço, profissional e horário em um só fluxo' : view === 'mine' ? 'Próximos horários e histórico' : view === 'barber' ? 'Atendimentos e estados de hoje' : 'Jornada semanal e exceções da agenda'}</p>
+        <p className="heading-note">Atendimento no fuso de São Paulo</p>
       </section>
 
       {(error || notice) && (
@@ -417,7 +431,7 @@ function BookingPanel({
   const params = new URLSearchParams(window.location.search);
   const [serviceId, setServiceId] = useState(params.get('serviceId') ?? '');
   const [barberId, setBarberId] = useState(params.get('barberId') ?? '');
-  const [date, setDate] = useState(() => params.get('date') ?? (params.get('startsAt') ? new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date(params.get('startsAt')!)) : today()));
+  const [date, setDate] = useState(initialBookingDate);
   const [selectedSlot, setSelectedSlot] = useState('');
   const [availabilityRevision, setAvailabilityRevision] = useState(0);
   const [loadingOptions, setLoadingOptions] = useState(true);
@@ -496,10 +510,11 @@ function BookingPanel({
       setSelectedSlot('');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Não foi possível confirmar o horário.');
-      if (cause instanceof Error && cause.message.includes('Authentication')) {
+      if (cause instanceof ApiError && cause.status === 401) {
         onUser(null);
         setAuthRequired(true);
       }
+      if (cause instanceof ApiError && cause.status === 409) setError('Este horário mudou. Escolha outro horário na lista atualizada.');
       setAvailabilityRevision((revision) => revision + 1);
     } finally {
       setSaving(false);
