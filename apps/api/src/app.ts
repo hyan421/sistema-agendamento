@@ -12,6 +12,8 @@ import { serviceRoutes } from './modules/services/routes.js';
 
 import { notificationRoutes } from './modules/notifications/routes.js';
 
+import { metricsRoutes } from './modules/metrics/routes.js';
+
 const app = express();
 const PgSession = connectPgSimple(session);
 const sessionCookieMaxAge = 8 * 60 * 60 * 1000;
@@ -50,7 +52,7 @@ app.use(
   }),
 );
 
-app.use('/api/v1', authRoutes, serviceRoutes, scheduleRoutes, appointmentRoutes, notificationRoutes);
+app.use('/api/v1', authRoutes, serviceRoutes, scheduleRoutes, appointmentRoutes, notificationRoutes, metricsRoutes);
 app.use((_request, response) => {
   response.status(404).json({ error: { code: 'NOT_FOUND', message: 'Resource not found.' } });
 });

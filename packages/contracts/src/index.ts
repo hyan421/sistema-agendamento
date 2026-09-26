@@ -5,3 +5,4 @@ export * from './scheduling.js';
 export const contractsPackageName = '@navalha/contracts';
 
 export * from './notifications.js';
+export * from './metrics.js';
