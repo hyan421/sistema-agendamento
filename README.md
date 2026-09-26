@@ -4,41 +4,37 @@ Plataforma web de agendamento para uma barbearia ficticia.
 
 Equipe: Hyan Carvalhido Ferreira, Fernando De Jesus Teixeira Goncalves Filho e Joao Victor Cerbino Souza.
 
-## O que ja existe neste momento
+## Estado da implementação
 
-Este repositorio tem a configuracao inicial e os **lotes 2 a 7** implementados:
+Lotes 1 a 10 implementados; CI e documentação do lote 11 preparados.
+A aprovação humana e a demonstração com modelo Ollama real continuam pendentes.
 
-- **Lote 2 concluido:** validacao de ambiente, pool PostgreSQL e executor de migrations. O seed de demonstracao ainda esta pendente.
-- **Lote 3 concluido:** cadastro e login de clientes, sessoes persistentes em PostgreSQL, logout e hash de senha com `scrypt`.
-- **Lote 4 concluido:** catalogo publico de servicos e barbeiros; barbeiros autenticados podem criar, editar e desativar servicos.
-- **Lote 5 concluido:** jornada semanal e bloqueios de agenda, com validacao de conflitos e acesso restrito ao barbeiro responsavel.
-- **Lote 6 validado:** API calcula disponibilidade na zona da loja e cria reservas com transacao, lock do barbeiro, snapshots e notificacoes de confirmacao. Duas reservas concorrentes foram exercitadas contra PostgreSQL: uma confirmou e a outra recebeu conflito.
-- **Lote 7 validado:** clientes consultam proximos agendamentos e historico; clientes e barbeiros autorizados podem cancelar, e o barbeiro consulta a agenda diaria e conclui atendimentos apos o termino. Os fluxos HTTP foram exercitados com sessoes e contas temporarias, removidas ao final.
+| História | Implementação |
+| --- | --- |
+| H1 — Conta de cliente | Cadastro, login, sessão PostgreSQL e logout |
+| H2 — Catálogo | Filtros por categoria, preço e cidade/bairro em URL |
+| H3 — Reserva | Disponibilidade, confirmação transacional, histórico e cancelamento |
+| H4 — Assistente | Fallback e adaptador Ollama; modelo real ainda não validado |
+| H5 — Serviços | Barbeiro cria, edita, ativa e desativa pelo frontend |
+| H6 — Agenda | Jornada semanal, bloqueios e proteção de reservas existentes |
+| H7 — Notificações | Confirmação, cancelamento, leitura e lembrete idempotente |
+| H8 — Métricas | Painel ADMIN com período, fuso, status e serviços concluídos |
 
-As migrations `001` a `006` definem usuarios, loja, sessoes, catalogo, agenda, reservas e notificacoes. Typecheck, lint, build e migrations passaram; as constraints de sobreposicao e a unicidade de notificacoes tambem foram verificadas contra PostgreSQL. O seed de demonstracao ainda esta pendente.
+Stack: TypeScript, React/Vite, Express 5, PostgreSQL 17 e npm workspaces.
+Responsabilidades propostas pelo guia: Hyan — integração, contratos e IA;
+Fernando — banco, autenticação e API; Joao Victor — telas e experiência.
+Revisão e aprovação de cada incremento devem ser registradas por uma pessoa do grupo.
 
-## O que voce precisa instalar (uma vez no computador)
+## Dependências do computador
 
-Hoje esta maquina ainda **nao** tem Git, Node nem Docker no PATH. Instale nesta ordem:
+- Git e Node.js **24.21.0**, conforme `.nvmrc` (npm incluído).
+- Linux: Docker Engine e plugin Compose v2. Windows/macOS: Docker Desktop.
+- PostgreSQL **17.11** é baixado pelo Compose; não requer instalação separada.
+- Ollama é opcional. O modo padrão é `AI_PROVIDER=fallback`.
 
-1. **Git** — [https://git-scm.com/download/win](https://git-scm.com/download/win)
-2. **Node.js 24.21.0 LTS** — [https://nodejs.org/dist/v24.21.0/node-v24.21.0-x64.msi](https://nodejs.org/dist/v24.21.0/node-v24.21.0-x64.msi)  
-   Na instalacao, deixe marcada a opcao de adicionar ao PATH. Nao instale a linha Current 26.
-3. **Docker Desktop** — [https://docs.docker.com/desktop/setup/install/windows-install/](https://docs.docker.com/desktop/setup/install/windows-install/)  
-   Depois de instalar, abra o Docker Desktop e espere ficar "Engine running". No Windows use WSL 2 se o instalador pedir.
-
-Feche e abra o Cursor/PowerShell depois de instalar. Confira:
-
-```powershell
-node --version
-npm --version
-git --version
-docker compose version
-```
-
-`node --version` deve mostrar `v24.21.0`.
-
-Ollama e opcional (so para o assistente com IA no lote 10). Sem ele o resto do projeto continua valido.
+Confira `node --version`, `npm --version` e `docker compose version`.
+No Linux, use `sudo docker ...` quando seu usuário não tiver acesso ao Docker.
+As bibliotecas do projeto são instaladas localmente com `npm ci`.
 
 ## Como preparar o ambiente do projeto
 
