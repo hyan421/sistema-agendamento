@@ -86,7 +86,11 @@ Para Ollama, configure `AI_PROVIDER=ollama`, `OLLAMA_BASE_URL` e `OLLAMA_MODEL` 
 já instalado localmente. Falha ou timeout usa ajuda automática identificada. Nenhum modelo é baixado pelo projeto.
 Limites de requisições ficam em memória e pressupõem uma única instância da API.
 
-## UML da implementação
+## Diagramas UML da aplicação
+
+### Diagrama de classes
+
+Visão das principais entidades persistidas e de seus relacionamentos.
 
 ```mermaid
 classDiagram
@@ -138,29 +142,34 @@ classDiagram
   Appointment "1" --> "0..*" Notification : gera
 ```
 
+### Diagrama de sequência
+
+Fluxo de uma reserva, incluindo a revalidação transacional que impede dois clientes
+de confirmarem o mesmo horário.
+
 ```mermaid
 sequenceDiagram
   actor Cliente
-  participant Web
-  participant API
-  participant Banco
-  Cliente->>Web: Seleciona serviço, barbeiro e dia
-  Web->>API: GET availability
-  API->>Banco: Consulta jornada, bloqueios e reservas
-  Banco-->>API: Intervalos atuais
-  API-->>Web: Horários disponíveis
-  Cliente->>Web: Confirma horário
-  Web->>API: POST appointments + sessão
-  API->>Banco: BEGIN; lock barbeiro; lock serviço
-  API->>Banco: Revalida disponibilidade
-  alt Horário ocupado
-    API->>Banco: ROLLBACK
-    API-->>Web: 409 SLOT_UNAVAILABLE
-    Web-->>Cliente: Atualiza horários
-  else Horário livre
-    API->>Banco: Insere reserva e notificações
-    API->>Banco: COMMIT
-    API-->>Web: 201 reserva
+  participant Web as Aplicação Web
+  participant API as API Express
+  participant DB as PostgreSQL
+  Cliente->>Web: Seleciona serviço, barbeiro e data
+  Web->>API: Solicita horários disponíveis
+  API->>DB: Consulta jornada, bloqueios e reservas
+  DB-->>API: Retorna intervalos ocupados
+  API-->>Web: Retorna horários disponíveis
+  Cliente->>Web: Confirma um horário
+  Web->>API: Envia pedido de reserva
+  API->>DB: Inicia transação e bloqueia recursos
+  API->>DB: Revalida o horário selecionado
+  alt Horário disponível
+    API->>DB: Insere reserva e notificação
+    API->>DB: Confirma transação
+    API-->>Web: Reserva criada
     Web-->>Cliente: Exibe confirmação
+  else Horário indisponível
+    API->>DB: Desfaz transação
+    API-->>Web: Informa conflito de horário
+    Web-->>Cliente: Atualiza horários disponíveis
   end
 ```
