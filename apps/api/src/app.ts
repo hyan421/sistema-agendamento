@@ -18,6 +18,8 @@ import { notificationRoutes } from './modules/notifications/routes.js';
 
 import { metricsRoutes } from './modules/metrics/routes.js';
 
+import { adminRoutes } from './modules/admin/routes.js';
+
 import { assistantRoutes } from './modules/assistant/routes.js';
 
 const app = express();
@@ -58,7 +60,7 @@ app.use(
   }),
 );
 
-app.use('/api/v1', authRoutes, serviceRoutes, scheduleRoutes, appointmentRoutes, notificationRoutes, metricsRoutes, shopRoutes, assistantRoutes);
+app.use('/api/v1', authRoutes, serviceRoutes, scheduleRoutes, appointmentRoutes, notificationRoutes, metricsRoutes, adminRoutes, shopRoutes, assistantRoutes);
 const webDirectory = fileURLToPath(new URL('../../web/dist/', import.meta.url));
 if (existsSync(webDirectory)) {
   app.use(express.static(webDirectory, { index: false }));
