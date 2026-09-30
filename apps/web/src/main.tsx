@@ -812,7 +812,11 @@ function formatTime(value: string): string {
 }
 
 function formatDateTime(value: string): string {
-  return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }).format(new Date(value));
+  return new Intl.DateTimeFormat('pt-BR', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: 'America/Sao_Paulo',
+  }).format(new Date(value));
 }
 
 function formatBlockDate(value: string): string {
