@@ -27,9 +27,12 @@ try {
   const results = await Promise.all([1, 2].map(() => call('/appointments', { cookie: client, method: 'POST', body: input })));
   assert.deepEqual(results.map((r) => r.status).sort(), [201, 409]);
   const id = results.find((r) => r.status === 201).body.data.id;
+  const clientAppointments = await call('/appointments/mine?scope=upcoming', { cookie: client });
+  assert.equal(clientAppointments.body.data.find((appointment) => appointment.id === id).barberName, 'Barbeiro Um');
   assert.equal((await call(`/appointments/${id}/cancel`, { cookie: other, method: 'POST' })).status, 404);
   const notifications = (await call('/notifications', { cookie: client })).body;
   assert.equal(notifications.meta.total, 1);
+  assert.equal(notifications.data[0].barberName, 'Barbeiro Um');
   const notification = notifications.data[0].id;
   assert.equal((await call(`/notifications/${notification}/read`, { cookie: other, method: 'PATCH' })).status, 404);
   for (let i = 0; i < 2; i++) assert.equal((await call(`/notifications/${notification}/read`, { cookie: client, method: 'PATCH' })).status, 204);

@@ -46,6 +46,7 @@ export function Notifications({ badge = false }: { badge?: boolean }) {
     {result?.data.length === 0 && <p>Nenhuma notificação.</p>}
     {result?.data.map((item) => <article key={item.id} className="schedule-section">
       <p>{item.message}</p>
+      <p>Barbeiro: {item.barberName}</p>
       <time>{new Date(item.createdAt).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</time>
       <p>{item.readAt ? 'Lida' : <button disabled={!!saving} onClick={() => void markRead(item.id)}>Marcar como lida</button>}</p>
     </article>)}

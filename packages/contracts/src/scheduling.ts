@@ -101,6 +101,10 @@ export const appointmentDTOSchema = z.strictObject({
   createdAt: z.iso.datetime(),
 });
 
+export const clientAppointmentDTOSchema = appointmentDTOSchema.extend({
+  barberName: z.string(),
+});
+
 export const appointmentScopeSchema = z.enum(['upcoming', 'history']);
 
 export const appointmentListQuerySchema = z.strictObject({
@@ -135,6 +139,7 @@ export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 export type AvailabilitySlot = z.infer<typeof availabilitySlotSchema>;
 export type AppointmentStatus = z.infer<typeof appointmentStatusSchema>;
 export type AppointmentDTO = z.infer<typeof appointmentDTOSchema>;
+export type ClientAppointmentDTO = z.infer<typeof clientAppointmentDTOSchema>;
 export type AppointmentScope = z.infer<typeof appointmentScopeSchema>;
 export type AppointmentListQuery = z.infer<typeof appointmentListQuerySchema>;
 export type BarberAppointmentsQuery = z.infer<typeof barberAppointmentsQuerySchema>;

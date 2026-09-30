@@ -9,6 +9,7 @@ export const notificationSchema = z.object({
   id: z.uuid(),
   kind: z.enum(['BOOKING_CONFIRMED', 'BOOKING_CANCELLED', 'BOOKING_REMINDER']),
   message: z.string(),
+  barberName: z.string(),
   readAt: z.string().nullable(),
   createdAt: z.string(),
 });

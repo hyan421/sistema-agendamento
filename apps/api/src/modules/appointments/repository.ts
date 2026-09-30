@@ -4,6 +4,7 @@ import { DateTime } from 'luxon';
 import type {
   AppointmentListQuery,
   AppointmentDTO,
+  ClientAppointmentDTO,
   AppointmentStatus,
   BarberAppointmentDTO,
   BarberAppointmentsQuery,
@@ -32,6 +33,7 @@ interface AppointmentListRow extends QueryResultRow {
   priceCents: number;
   durationMinutes: number;
   createdAt: Date;
+  barberName?: string;
   clientName?: string;
 }
 
@@ -113,7 +115,7 @@ export type BookingSlotValidator = (context: LockedBookingContext) => Availabili
 export async function listClientAppointments(
   clientId: string,
   query: AppointmentListQuery,
-): Promise<AppointmentPage<AppointmentDTO>> {
+): Promise<AppointmentPage<ClientAppointmentDTO>> {
   const upcoming = query.scope === 'upcoming';
   const filter = upcoming
     ? "status = 'CONFIRMED' AND starts_at > now()"
@@ -124,19 +126,21 @@ export async function listClientAppointments(
       [clientId],
     ),
     pool.query<AppointmentListRow>(
-      `SELECT id, service_id AS "serviceId", barber_id AS "barberId",
-         starts_at AS "startsAt", ends_at AS "endsAt", status,
-         service_name_snapshot AS "serviceName", price_cents_snapshot AS "priceCents",
-         duration_minutes_snapshot AS "durationMinutes", created_at AS "createdAt"
-       FROM appointments
-       WHERE client_id = $1 AND ${filter}
-       ORDER BY starts_at, id
+      `SELECT a.id, a.service_id AS "serviceId", a.barber_id AS "barberId",
+         a.starts_at AS "startsAt", a.ends_at AS "endsAt", a.status,
+         a.service_name_snapshot AS "serviceName", a.price_cents_snapshot AS "priceCents",
+         a.duration_minutes_snapshot AS "durationMinutes", a.created_at AS "createdAt",
+         b.display_name AS "barberName"
+       FROM appointments a
+       JOIN barbers b ON b.id = a.barber_id
+       WHERE a.client_id = $1 AND ${filter}
+       ORDER BY a.starts_at, a.id
        LIMIT $2 OFFSET $3`,
       [clientId, query.pageSize, (query.page - 1) * query.pageSize],
     ),
   ]);
   return {
-    items: itemsResult.rows.map(toAppointmentDTO),
+    items: itemsResult.rows.map((row) => ({ ...toAppointmentDTO(row), barberName: row.barberName! })),
     page: query.page,
     pageSize: query.pageSize,
     total: Number(countResult.rows[0]?.total ?? 0),

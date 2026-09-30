@@ -18,7 +18,7 @@ type Envelope<T> = { data: T };
 type Service = { id: string; name: string; description: string; category: string; durationMinutes: number; priceCents: number; active: boolean };
 type Barber = { id: string; displayName: string };
 type User = { id: string; name: string; email: string; role: 'CLIENT' | 'BARBER' | 'ADMIN' };
-type Appointment = { id: string; serviceId: string; barberId: string; startsAt: string; endsAt: string; status: 'CONFIRMED' | 'CANCELLED' | 'COMPLETED'; serviceName: string; priceCents: number; durationMinutes: number; createdAt: string; clientName?: string };
+type Appointment = { id: string; serviceId: string; barberId: string; startsAt: string; endsAt: string; status: 'CONFIRMED' | 'CANCELLED' | 'COMPLETED'; serviceName: string; priceCents: number; durationMinutes: number; createdAt: string; barberName?: string; clientName?: string };
 type PageEnvelope<T> = { data: T[]; meta: { page: number; pageSize: number; total: number } };
 
 const weekdays = [
@@ -697,7 +697,7 @@ function ClientAppointmentsPanel({
           {result.data.map((appointment) => (
             <li className="appointment-row" key={appointment.id}>
               <div className="appointment-when"><strong>{formatDateTime(appointment.startsAt)}</strong><span>{appointment.durationMinutes} min</span></div>
-              <div className="appointment-info"><strong>{appointment.serviceName}</strong><span>{formatMoney(appointment.priceCents)}</span></div>
+              <div className="appointment-info"><strong>{appointment.serviceName}</strong><span>Barbeiro: {appointment.barberName}</span><span>{formatMoney(appointment.priceCents)}</span></div>
               <span className={`status-label status-${appointment.status.toLowerCase()}`}>{statusText(appointment.status)}</span>
               {scope === 'upcoming' && appointment.status === 'CONFIRMED' && (
                 <button className="text-button appointment-action" type="button" onClick={() => void cancel(appointment)}>Cancelar</button>
