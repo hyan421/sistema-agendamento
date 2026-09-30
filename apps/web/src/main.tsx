@@ -7,6 +7,7 @@ import { Services } from './features/Services';
 import { Catalog } from './features/Catalog';
 import { Assistant } from './features/Assistant';
 import { Metrics } from './features/Metrics';
+import { AdminBarbers } from './features/AdminBarbers';
 import { Notifications } from './features/Notifications';
 import { BrowserRouter, useLocation } from 'react-router';
 import { useView } from './lib/navigation';
@@ -206,7 +207,7 @@ function App(): React.JSX.Element {
         <button onClick={() => setView('catalog')}>Catálogo</button>
         {!currentUser && <><a href="/entrar">Entrar</a><a href="/cadastro">Cadastrar</a></>}
         {currentUser?.role === 'CLIENT' && <button onClick={() => setView('assistant')}>Assistente</button>}
-        {currentUser?.role === 'ADMIN' && <button onClick={() => setView('metrics')}>Métricas</button>}
+        {currentUser?.role === 'ADMIN' && <button onClick={() => setView('metrics')}>Administração</button>}
         {currentUser && <button onClick={() => setView('notifications')}>Notificações<Notifications key={currentUser.id} badge /></button>}
         <button className={view === 'book' ? 'nav-active' : ''} type="button" onClick={() => setView('book')}>Agendar</button>
         {currentUser?.role === 'CLIENT' && <button className={view === 'mine' ? 'nav-active' : ''} type="button" onClick={() => setView('mine')}>Meus agendamentos</button>}
@@ -243,7 +244,10 @@ function App(): React.JSX.Element {
         (view === 'metrics' && currentUser.role !== 'ADMIN') || (['mine', 'assistant'].includes(view) && currentUser.role !== 'CLIENT')) &&
         <p role="alert">Sua conta não tem acesso a esta página.</p>}
       {view === 'assistant' && currentUser?.role === 'CLIENT' && <Assistant />}
-      {view === 'metrics' && currentUser?.role === 'ADMIN' && <Metrics />}
+      {view === 'metrics' && currentUser?.role === 'ADMIN' && <>
+        <AdminBarbers />
+        <Metrics />
+      </>}
       {view === 'notifications' && currentUser && <Notifications key={currentUser.id} />}
       {view === 'book' && (
         <BookingPanel key={location.pathname + location.search}
