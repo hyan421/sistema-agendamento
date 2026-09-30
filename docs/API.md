@@ -9,6 +9,7 @@ Envie `Content-Type: application/json` quando houver corpo. Datas exibidas no fu
 | GET /health | Público; 200 se banco responde, 503 caso contrário |
 | GET /shop | Público; dados da unidade ou null antes do seed |
 | POST /auth/register | Público; name, email, password; cria CLIENT |
+| POST /admin/barbers | ADMIN; name, email, password; cria conta BARBER e perfil profissional; 201 ou e-mail duplicado 409 |
 | POST /auth/login | Público; email, password; inicia sessão |
 | GET /auth/me | Conta ativa da sessão |
 | POST /auth/logout | Autenticado; encerra sessão |

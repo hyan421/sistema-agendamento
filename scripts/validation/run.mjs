@@ -52,6 +52,21 @@ try {
   assert.equal(metrics.body.data.appointments.CANCELLED, 1);
   assert.equal(metrics.body.data.activeUsers, 4);
   assert.equal((await call('/admin/metrics?from=2026-12-01&to=2026-01-01', { cookie: admin })).status, 400);
+  const barberInput = {
+    name: 'Barbeiro Novo',
+    email: 'novo.barbeiro@demo.test',
+    password: env.DEMO_PASSWORD,
+  };
+  assert.equal((await call('/admin/barbers', { cookie: client, method: 'POST', body: barberInput })).status, 403);
+  assert.equal((await call('/auth/register', { method: 'POST', body: { ...barberInput, role: 'BARBER' } })).status, 400);
+  const createdBarber = await call('/admin/barbers', { cookie: admin, method: 'POST', body: barberInput });
+  assert.equal(createdBarber.status, 201);
+  assert.equal(createdBarber.body.data.role, 'BARBER');
+  assert.equal((await call('/admin/barbers', { cookie: admin, method: 'POST', body: barberInput })).status, 409);
+  const barberRoster = await call('/barbers');
+  assert.ok(barberRoster.body.data.some((item) => item.displayName === 'Barbeiro Novo'));
+  const newBarber = await login(barberInput.email);
+  assert.equal((await call('/barber/weekly-hours', { cookie: newBarber })).status, 200);
   const reply = await call('/assistant/messages', { cookie: client, method: 'POST', body: { message: 'Quanto custa um corte?' } });
   assert.equal(reply.body.data.mode, 'fallback');
   assert.ok(reply.body.data.text.includes('sem LLM'));
@@ -62,5 +77,5 @@ try {
     assert.equal(response.status, 200);
     assert.ok(response.headers.get('content-type').includes('text/html'));
   }
-  console.log('OK: seed, concorrencia, isolamento, notificacoes, lembretes, metricas, fallback e build servido.');
+  console.log('OK: seed, cadastro e acesso de barbeiro, concorrencia, isolamento, notificacoes, lembretes, metricas, fallback e build servido.');
 } finally { await context.cleanup(); }
