@@ -232,8 +232,34 @@ h2, h3 { color: var(--ink); font-family: var(--serif); font-weight: 600; text-tr
 .schedule-section {
   border: 1px solid #d8d0c3; border-top: 4px solid var(--accent);
   border-radius: 4px; background: var(--paper);
-  box-shadow: 0 14px 36px #00000026;
+  color: var(--ink); box-shadow: 0 14px 36px #00000026;
 }
+.schedule-section .schedule-section {
+  margin-top: 14px; padding: 18px; border-top-width: 2px; box-shadow: none;
+}
+.schedule-section label { color: #403b34; }
+.schedule-section :where(button:not(.text-button):not(.icon-button):not(.slot-button):not(.primary-button)) {
+  min-height: 38px; padding: 0 13px; border: 1px solid #332f2a; border-radius: 3px;
+  background: #332f2a; color: #fffaf0; font-size: 11px; font-weight: 800;
+  letter-spacing: .04em; transition: background .16s ease, transform .16s ease;
+}
+.schedule-section :where(button:not(.text-button):not(.icon-button):not(.slot-button):not(.primary-button)):hover:not(:disabled) {
+  transform: translateY(-1px); background: #1f1d1a;
+}
+.schedule-section button:disabled { color: #716b61; }
+.schedule-section .segmented-control button {
+  min-height: 31px; padding: 0 11px; border: 0; background: #ded6c9; color: #49443c;
+  font-size: 11px; font-weight: 700; letter-spacing: 0;
+}
+.schedule-section .segmented-control button.segment-active {
+  background: #fffaf0; color: var(--ink); box-shadow: 0 1px 3px #2225221c;
+}
+.schedule-section .pagination button {
+  min-height: 30px; padding: 0 8px; border-color: #bcb3a5; background: transparent;
+  color: var(--ink); letter-spacing: 0; font-weight: 600;
+}
+.schedule-section .pagination button:hover:not(:disabled) { background: #e4dccf; }
+.schedule-section .pagination button:disabled { border-color: #ded8ce; color: #969087; }
 .section-heading { border-color: #d8d0c3; }
 .section-index { color: #8e877c; }
 .primary-button {
