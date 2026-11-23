@@ -80,6 +80,9 @@ npm start
 Abra [localhost:3001](http://localhost:3001). A API serve também o frontend.
 Com o banco ativo, `node scripts/validation/run.mjs` testa em banco temporário isolado;
 o usuário PostgreSQL precisa de permissão de criar banco (o usuário do Compose já tem).
+`npm test` executa testes unitários de disponibilidade (com cobertura mínima de 80%) e
+quatro fluxos E2E com Playwright/Chromium; também requer o banco ativo e permissão para criar bancos temporários.
+Na primeira execução local, instale o navegador com `npx playwright install chromium`.
 Veja [validação](docs/VALIDACAO_MANUAL.md), [API](docs/API.md), [demo](docs/DEMO.md) e [uso de IA](docs/USO_IA.md).
 
 Para Ollama, configure `AI_PROVIDER=ollama`, `OLLAMA_BASE_URL` e `OLLAMA_MODEL` com um modelo

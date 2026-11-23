@@ -39,6 +39,8 @@ jobs:
       - run: npm run db:migrate
       - run: node scripts/validation/run.mjs
       - run: node scripts/validation/assistant.mjs
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
       - name: Verificar commits
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
