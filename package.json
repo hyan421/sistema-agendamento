@@ -16,6 +16,9 @@
     "typecheck": "npm run build -w @navalha/contracts && npm run typecheck -w @navalha/api && npm run typecheck -w @navalha/web",
     "lint": "eslint .",
     "check": "npm run typecheck && npm run lint",
+    "test:unit": "npm run build -w @navalha/contracts && npm run build -w @navalha/api && node --experimental-test-coverage --test --test-coverage-include=apps/api/dist/modules/schedule/availability.js --test-coverage-lines=80 --test-coverage-functions=80 --test-coverage-branches=80 test/unit/availability.test.mjs",
+    "test:e2e": "npm run build && playwright test",
+    "test": "npm run test:unit && npm run test:e2e",
     "start": "npm run start -w @navalha/api",
     "db:migrate": "npm run db:migrate -w @navalha/api",
     "db:seed": "npm run db:seed -w @navalha/api",
@@ -24,6 +27,7 @@
   },
   "devDependencies": {
     "@eslint/js": "9.36.0",
+    "@playwright/test": "^1.65.1",
     "concurrently": "9.2.1",
     "eslint": "9.36.0",
     "eslint-plugin-react-hooks": "5.2.0",
